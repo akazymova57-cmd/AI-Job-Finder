@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="Поиск международных удалённых вакансий с фильтрами и оценкой соответствия профилю.">
+  <title>AI Job Finder — международная удалённая работа</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">J</span><span>AI Job Finder</span></a>
+    <span class="live-label"><i></i> MVP · Beta</span>
+  </header>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">INTERNATIONAL REMOTE WORK</p>
+      <h1>Найди работу <span>без границ.</span></h1>
+      <p class="subhead">Собираем удалённые вакансии и помогаем быстро отсеять неподходящие.</p>
+      <form id="search-form" class="searchbar">
+        <span class="search-icon">⌕</span>
+        <input id="query" type="search" placeholder="Должность, навык или ключевое слово" aria-label="Поиск вакансий">
+        <button type="submit">Найти вакансии</button>
+      </form>
+      <div class="filters">
+        <label>География
+          <select id="location">
+            <option value="any">Любая</option>
+            <option value="worldwide">Worldwide / Anywhere</option>
+            <option value="europe">Европа / EMEA</option>
+            <option value="americas">Северная и Южная Америка</option>
+            <option value="asia">Азия</option>
+          </select>
+        </label>
+        <label>Уровень
+          <select id="level">
+            <option value="all">Любой</option>
+            <option value="entry">Начальный / без опыта</option>
+            <option value="intern">Стажировка</option>
+          </select>
+        </label>
+        <label>Тип занятости
+          <select id="type">
+            <option value="all">Любой</option>
+            <option value="full_time">Полная</option>
+            <option value="part_time">Частичная</option>
+            <option value="contract">Контракт</option>
+            <option value="internship">Стажировка</option>
+          </select>
+        </label>
+      </div>
+    </section>
+    <section class="results-section">
+      <div class="section-heading">
+        <div><p class="eyebrow">JOB DISCOVERY</p><h2>Подходящие вакансии</h2></div>
+        <button id="refresh" class="ghost-button" type="button">↻ Обновить</button>
+      </div>
+      <div id="status" class="status" role="status">Загружаем вакансии…</div>
+      <div id="jobs" class="jobs-grid"></div>
+      <p class="source-note">Вакансии предоставлены <a href="https://remotive.com/" target="_blank" rel="noopener noreferrer">Remotive</a>. Данные могут обновляться с задержкой. Всегда проверяйте требования и географические ограничения на странице работодателя.</p>
+    </section>
+    <section class="notice">
+      <strong>Важно:</strong> отметка «Начальный уровень» — автоматическая оценка по тексту вакансии, а не гарантия трудоустройства без опыта. Проверяйте требования к стране проживания, разрешению на работу и языку.
+    </section>
+  </main>
+  <footer><span>AI Job Finder</span><span>Первый MVP · Данные: Remotive</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
