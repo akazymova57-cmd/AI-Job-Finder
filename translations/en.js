@@ -57,5 +57,4 @@ window.APP_TRANSLATIONS.en = {
   "Переводим…": "Translating…",
   "Скрыть перевод": "Hide translation",
   "Повторить перевод": "Retry translation"
-}
 };
