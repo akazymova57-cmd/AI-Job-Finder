@@ -13,6 +13,13 @@ A lightweight, no-build MVP for discovering international remote jobs and compar
 - Open the original vacancy URL on the provider's website.
 - Cache API results in the browser for six hours.
 
+## Favorites and application tracker
+
+- Save vacancies to a local favorites list.
+- Track each saved vacancy as saved, planned, applied, interview, rejected or offer received.
+- Open the original vacancy source from the tracker.
+- Favorites and statuses are stored in this browser's localStorage only; they are not synced between devices and can be cleared with site data.
+
 ## Resume matching: what the percentage means
 
 The matching score is deliberately not described as AI. The browser checks for a fixed list of skill phrases in the resume and in each vacancy's title, tags and description.
