@@ -1,0 +1,33 @@
+name: Validate application
+
+on:
+  push:
+    branches:
+      - main
+      - fix/app-audit-nov-2026
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check config.js
+          node --check translations/en.js
+          node --check translations/ru.js
+          node --check scripts/update-jobs.mjs
+      - name: Validate vacancy snapshot JSON
+        run: node -e "JSON.parse(require('node:fs').readFileSync('data/jobs.json', 'utf8')); console.log('jobs.json is valid JSON')"
