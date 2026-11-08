@@ -17,6 +17,26 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+let currentLanguage = localStorage.getItem("aijf_language") === "en" ? "en" : "ru";
+
+function applyLanguage() {
+  const dictionary = (window.APP_TRANSLATIONS && window.APP_TRANSLATIONS[currentLanguage]) || {};
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    const original = node.nodeValue.trim();
+    if (original && dictionary[original]) node.nodeValue = node.nodeValue.replace(original, dictionary[original]);
+  }
+  document.documentElement.lang = currentLanguage;
+  const toggle = $("language-toggle");
+  if (toggle) toggle.textContent = currentLanguage === "ru" ? "RU / EN" : "EN / RU";
+}
+
+$("language-toggle")?.addEventListener("click", () => {
+  currentLanguage = currentLanguage === "ru" ? "en" : "ru";
+  localStorage.setItem("aijf_language", currentLanguage);
+  location.reload();
+});
 
 const SKILL_CATALOG = [
   { id: "customer-support", label: "Customer support", terms: ["customer support", "customer service", "technical support", "support agent", "поддержка клиентов", "служба поддержки", "работа с клиентами"] },
