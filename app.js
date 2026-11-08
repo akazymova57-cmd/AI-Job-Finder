@@ -277,19 +277,27 @@ function categoryMatches(job, category) {
 }
 
 
+function isEntryLevelJob(job) {
+  const title = normalizeText(job.title || "");
+  const description = normalizeText(job.description || "");
+  if (/\b(junior|entry.level|intern|trainee|graduate)\b|стаж[её]р|младш/i.test(title)) return true;
+  return /no experience (?:required|needed)|no prior experience|without experience|entry.level|0\s*[-–]\s*1 years?|training (?:will be )?provided|без опыта|опыт не требуется/i.test(description);
+}
+
 function getJobDifficulty(job) {
   const text = getJobText(job);
-  const seniorSignals = /senior|lead|principal|staff|architect|director|head of|5\+? years|[5-9] years|\b[1-9][0-9] years|руководител|архитектор/i.test(text);
-  const complexSignals = /advanced|expert|specialist|deep knowledge|hands-on experience|multiple programming languages|машинное обучение|глубокие знания/i.test(text);
+  const title = normalizeText(job.title || "");
+  const seniorTitle = /\b(senior|lead|principal|staff|architect|director|head of)\b|руководител|архитектор/i.test(title);
+  const yearsMatch = text.match(/\b(5|6|7|8|9|10)\s*\+?\s*(?:years?|yrs?)\b|(?:5|6|7|8|9|10)\s*\+?\s*(?:лет|года)/i);
+  const complexSignals = /advanced|expert|deep knowledge|hands-on experience|multiple programming languages|machine learning|машинное обучение|глубокие знания/i.test(text);
   const skillCount = extractSkills(text).length;
   let points = 0;
-  if (seniorSignals) points += 2;
+  if (seniorTitle || yearsMatch) points += 2;
   if (complexSignals) points += 1;
   if (skillCount >= 8) points += 2;
   else if (skillCount >= 4) points += 1;
   if (/bachelor|master|phd|degree required|certification required|высшее образование обязательно/i.test(text)) points += 1;
-  if (entryPattern.test(text) && !seniorSignals) points -= 2;
-  if (/no experience|without experience|entry.level|без опыта|обучение предоставляется/i.test(text)) points -= 1;
+  if (isEntryLevelJob(job) && !seniorTitle) points -= 2;
   const level = points <= 0 ? "easy" : points <= 2 ? "medium" : "hard";
   return { level, label: level === "easy" ? "Лёгкая" : level === "medium" ? "Средняя" : "Высокая", bars: level === "easy" ? 2 : level === "medium" ? 3 : 5 };
 }
@@ -309,8 +317,8 @@ function getExperienceRequirement(job) {
   if (/no experience|without experience|entry.level|без опыта|опыт не требуется/i.test(text)) return "Без опыта";
   const years = text.match(/(?:at least |minimum |минимум )?(\d+)\s*\+?\s*(?:years?|yrs?|лет|года|год)/i);
   if (years) return Number(years[1]) + "+ лет";
-  if (seniorPattern.test(text)) return "Senior / Lead";
-  if (entryPattern.test(text)) return "Начальный";
+  if (/\b(senior|lead|principal|staff|head of|director)\b|руководител/i.test(normalizeText(job.title || ""))) return "Senior / Lead";
+  if (isEntryLevelJob(job)) return "Начальный";
   return "Не указан";
 }
 
@@ -559,10 +567,10 @@ function render() {
       geoBadge.className = "badge " + (globalEligibility ? "entry" : "warning");
       geoBadge.textContent = globalEligibility ? "🌍 Worldwide" : (job.candidate_required_location ? "Ограничения: " + job.candidate_required_location : "География не указана");
       badges.append(geoBadge);
-      const isEntry = entryPattern.test(getJobText(job));
+      const isEntry = isEntryLevelJob(job);
       const levelBadge = document.createElement("span");
       levelBadge.className = "badge " + (isEntry ? "entry" : "warning");
-      levelBadge.textContent = isEntry ? "Начальный уровень" : (seniorPattern.test(getJobText(job)) ? "Senior / Lead" : "Опыт не подтверждён");
+      levelBadge.textContent = isEntry ? "Начальный уровень" : (/\b(senior|lead|principal|staff|head of|director)\b|руководител/i.test(normalizeText(job.title || "")) ? "Senior / Lead" : "Опыт не подтверждён");
       badges.append(levelBadge);
       (Array.isArray(job.tags) ? job.tags : []).slice(0, 2).forEach((tag) => {
         const badge = document.createElement("span");
