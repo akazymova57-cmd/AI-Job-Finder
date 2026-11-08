@@ -249,10 +249,11 @@ function categoryMatches(job, category) {
     it: /software developer|software engineer|web developer|frontend|front-end|backend|back-end|full[- ]stack|programmer|devops|data analyst|quality assurance|\bqa\b|sql developer|python developer|javascript|разработчик|программист|тестировщик|аналитик данных/i,
     design: /design|designer|figma|ux\b|ui\b|graphic|visual|дизайн|дизайнер/i,
     marketing: /marketing|seo|sem\b|growth|social media|smm|performance|маркетинг|продвижен/i,
-    support: /customer support|customer service|support engineer|technical support|support specialist|support agent|help desk|service desk|customer success|поддержк|служба поддержки|специалист поддержки|инженер поддержки/i,
+    support: /customer support|customer service|customer care|client support|support engineer|technical support|support specialist|support agent|help ?desk|service desk|customer success|поддержк|служба поддержки|специалист поддержки|инженер поддержки/i,
     writing: /copywriter|copywriting|content writer|technical writer|editor|writing|копирайт|редактор|автор текст/i,
     admin: /administrative|administrator|virtual assistant|operations|coordinator|data entry|office manager|администратор|ассистент|ввод данных/i
   };
+  if (category === "it" && patterns.support.test(text)) return false;
   return Boolean(patterns[category] && patterns[category].test(text));
 }
 
