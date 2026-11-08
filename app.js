@@ -445,7 +445,15 @@ function render() {
       link.target = "_blank";
       link.rel = "noopener noreferrer";
 
-      bottom.append(relevance, link);
+      const favorite = document.createElement("button");
+      favorite.type = "button";
+      favorite.className = "favorite-button";
+      favorite.dataset.favoriteUrl = safeJobUrl(job.url);
+      const isSaved = state.savedJobs.some((item) => item.url === favorite.dataset.favoriteUrl);
+      favorite.textContent = isSaved ? "★ В избранном" : "☆ В избранное";
+      favorite.classList.toggle("is-saved", isSaved);
+
+      bottom.append(relevance, link, favorite);
       card.append(bottom);
       container.append(card);
     });
