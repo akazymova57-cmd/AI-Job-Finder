@@ -253,3 +253,21 @@ footer {
   .card-bottom { align-items: flex-start; flex-direction: column; }
   .apply { align-self: flex-start; }
 }
+
+/* Saved jobs and application tracker */
+.tracker-panel { margin-top: 42px; padding: 22px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
+.tracker-count { color: var(--muted); font-size: 12px; }
+.tracker-list { display: grid; gap: 10px; }
+.tracker-item { display: grid; grid-template-columns: minmax(0,1fr) minmax(150px,220px) auto; align-items: center; gap: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 10px; }
+.tracker-item h3 { margin: 0 0 4px; font: 600 14px Manrope,sans-serif; }
+.tracker-item p { margin: 0; color: var(--muted); font-size: 11px; }
+.tracker-item select { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 7px; padding: 8px; background: var(--panel-2); color: var(--text); font-size: 12px; }
+.tracker-item a, .favorite-button { border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; background: transparent; color: var(--accent); font-size: 11px; text-decoration: none; cursor: pointer; }
+.favorite-button { white-space: nowrap; }
+.favorite-button.is-saved { background: #203c39; border-color: #38665b; }
+.tracker-empty { padding: 18px; border: 1px dashed var(--line); border-radius: 9px; color: var(--muted); font-size: 12px; text-align: center; }
+@media (max-width: 600px) {
+  .tracker-panel { padding: 16px; }
+  .tracker-item { grid-template-columns: 1fr; }
+  .tracker-item a { justify-self: start; }
+}
