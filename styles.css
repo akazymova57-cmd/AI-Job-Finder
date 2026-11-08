@@ -506,3 +506,106 @@ footer { min-width: 0; flex-wrap: wrap; overflow-wrap: anywhere; }
   .pagination { width: 100% !important; max-width: 100% !important; flex-wrap: wrap !important; }
   footer { width: 100% !important; max-width: 100% !important; }
 }
+
+
+/* Mobile layout cleanup v3: contain every layout region and simplify drawer navigation */
+html, body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+body { min-width: 320px; }
+.app-layout, .shell, .discovery-layout, .results-section,
+.profile-panel, .tracker-panel, .notice, footer,
+.filter-sidebar, #jobs, .job-card, .tracker-list {
+  min-width: 0;
+  max-width: 100%;
+}
+.app-layout { width: 100%; }
+.shell { width: 100%; }
+.job-card, .job-card * , .tracker-item, .tracker-item * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.job-card img, .job-card iframe, .job-card video { max-width: 100%; }
+.sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sidebar-nav { min-width: 0; overflow-x: hidden; }
+.sidebar-group {
+  display: block;
+  padding: 8px 0 0;
+  border-top: 1px solid #ffffff12;
+}
+.sidebar-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 11px 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+.sidebar-group-title::-webkit-details-marker { display: none; }
+.sidebar-group-title::after {
+  content: "+";
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 1;
+}
+.sidebar-group[open] > .sidebar-group-title::after { content: "−"; }
+.sidebar-group > .sidebar-link { margin-top: 2px; }
+.sidebar-footnote { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid #ffffff12; color: var(--muted); font-size: 10px; line-height: 1.5; }
+
+@media (max-width: 1024px) {
+  .app-layout { display: block !important; }
+  .app-sidebar {
+    width: min(310px, calc(100vw - 56px)) !important;
+    max-width: calc(100vw - 56px) !important;
+    padding: 18px 14px !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 5px; }
+  .sidebar-link { min-height: 42px; padding: 10px 12px; font-size: 13px; }
+  .sidebar-group { padding-top: 7px; }
+  .sidebar-group-title { min-height: 40px; font-size: 11px; }
+  .filter-sidebar { margin-bottom: 18px; }
+  .discovery-layout { display: flex; flex-direction: column; gap: 12px; }
+  .filter-sidebar, .results-section { width: 100%; }
+}
+@media (max-width: 600px) {
+  .topbar {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    padding: 9px 10px;
+    gap: 7px;
+  }
+  .topbar > .brand { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+  .brand > span:last-child { overflow: hidden; text-overflow: ellipsis; }
+  .header-actions { min-width: 0; flex: 0 1 auto; flex-wrap: nowrap; }
+  .live-label { display: none; }
+  .shell { padding: 28px 12px 28px; }
+  .hero, .profile-panel, .discovery-layout, .tracker-panel, .notice { min-width: 0; }
+  .hero h1 { max-width: 100%; overflow-wrap: break-word; }
+  .searchbar { min-width: 0; }
+  .searchbar button { max-width: 38%; }
+  .profile-heading { min-width: 0; }
+  .privacy-note { max-width: 100%; overflow-wrap: anywhere; }
+  .filter-sidebar { padding: 14px; }
+  .filter-sidebar .filters, .filter-sidebar .extra-filters { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .filter-sidebar .filters label, .filter-sidebar .sort-label { width: 100%; min-width: 0; }
+  .filter-sidebar select { min-width: 0; width: 100%; }
+  .section-heading { min-width: 0; }
+  .section-heading h2 { overflow-wrap: anywhere; }
+  .jobs-grid { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  .job-card { width: 100%; padding: 14px; }
+  .job-top, .card-bottom { flex-wrap: wrap; }
+  .apply { white-space: normal; max-width: 100%; }
+  .pagination { display: flex; width: 100%; min-width: 0; flex-wrap: wrap; justify-content: center; }
+  footer { display: flex; gap: 8px; padding: 16px 12px; }
+}
