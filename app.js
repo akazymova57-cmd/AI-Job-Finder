@@ -270,7 +270,7 @@ function jobDate(job) {
 function safeJobUrl(value, sourceId) {
   try {
     const url = new URL(value);
-    const candidates = sourceId && APP_CONFIG.sources[sourceId] ? [APP_CONFIG.sources[sourceId]] : Object.values(APP_CONFIG.sources);
+    const candidates = sourceId ? (APP_CONFIG.sources[sourceId] ? [APP_CONFIG.sources[sourceId]] : []) : Object.values(APP_CONFIG.sources);
     const hostAllowed = candidates.some(source => source.allowedHosts.some(host => url.hostname === host || url.hostname.endsWith("." + host)));
     return url.protocol === "https:" && hostAllowed ? url.href : "";
   } catch (_) {
