@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#14243a">
   <meta name="description" content="AI Job Finder — поиск международных удалённых вакансий с оценкой сложности, языка и совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
-  <link rel="stylesheet" href="styles.css?v=20261109-premium1">
+  <link rel="stylesheet" href="styles.css?v=20261109-premium2">
   <script src="config.js"></script>
   <script src="translations/ru.js"></script>
   <script src="translations/en.js"></script>
@@ -115,6 +115,10 @@
             <label class="sort-label" for="sort">Сортировка
               <select id="sort">
                 <option value="match">По совпадению / релевантности</option>
+                <option value="no-experience">Сначала без опыта</option>
+                <option value="entry">Сначала начальный уровень / Junior</option>
+                <option value="intern">Сначала стажировки</option>
+                <option value="easy">Сначала простые вакансии</option>
                 <option value="newest">Сначала новые</option>
                 <option value="salary">Сначала с указанной зарплатой</option>
               </select>
@@ -150,6 +154,6 @@
   </div>
 
   <footer id="about"><span>AI Job Finder</span><span>Источники: Remote OK · Jobicy · We Work Remotely · Himalayas · <a href="https://github.com/akazymova57-cmd/AI-Job-Finder" target="_blank" rel="noopener noreferrer">GitHub проекта</a></span></footer>
-  <script src="app.js?v=20261108-jobicy2"></script>
+  <script src="app.js?v=20261109-experience-sort1"></script>
 </body>
 </html>
