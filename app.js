@@ -215,8 +215,12 @@ async function loadJobs(force) {
 function locationMatches(job, filter) {
   if (filter === "any") return true;
 
-  const value = String(job.candidate_required_location || "").toLowerCase();
-  if (filter === "worldwide") return /worldwide|anywhere|global|everywhere|🌍/.test(value);
+  const value = String(job.candidate_required_location || "").toLowerCase().replace(/[–—]/g, "-");
+  if (filter === "worldwide") {
+    // Only include listings that explicitly allow applicants from any country.
+    // A generic "Remote" label or a missing eligibility field is not proof.
+    return /worldwide|anywhere(?: in the world)?|work from anywhere|global(?:ly)?|everywhere|all countries|any country|no (?:geo(?:graphic)?|location) restrictions|remote -? (?:global|worldwide)|🌍/.test(value);
+  }
   if (filter === "europe") return /europe|emea|european|uk|united kingdom|germany|france|spain|poland|netherlands|european union/i.test(value);
   if (filter === "americas") return /americ|united states|usa|canada|latin/i.test(value);
   if (filter === "asia") return /asia|india|singapore|japan|china|philippines|indonesia/i.test(value);
