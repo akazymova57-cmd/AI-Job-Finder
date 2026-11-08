@@ -9,13 +9,13 @@ const APP_CONFIG = {
     }
   },
   fraudPatterns: [
-    /pay(?:ment)?\\s+(?:a\\s+)?(?:fee|for\\s+training|to\\s+apply)/i,
-    /upfront\\s+(?:fee|payment|deposit)/i,
-    /заплатите\\s+за\\s+(?:трудоустройство|обучение|доступ)/i,
-    /оплат\\w*\\s+(?:трудоустройств|обучени|доступ)/i,
-    /send\\s+(?:your\\s+)?(?:passport|credit\\s+card|bank\\s+card)/i,
-    /пришлите\\s+(?:скан\\s+)?паспорт|данные\\s+(?:банковской\\s+)?карт/i,
-    /telegram\\s+only|whatsapp\\s+only|только\\s+(?:в\\s+)?(?:телеграм|telegram|whatsapp)/i
+    /pay(?:ment)?\s+(?:a\s+)?(?:fee|for\s+training|to\s+apply)/i,
+    /upfront\s+(?:fee|payment|deposit)/i,
+    /заплатите\s+за\s+(?:трудоустройство|обучение|доступ)/i,
+    /оплат\w*\s+(?:трудоустройств|обучени|доступ)/i,
+    /send\s+(?:your\s+)?(?:passport|credit\s+card|bank\s+card)/i,
+    /пришлите\s+(?:скан\s+)?паспорт|данные\s+(?:банковской\s+)?карт/i,
+    /telegram\s+only|whatsapp\s+only|только\s+(?:в\s+)?(?:телеграм|telegram|whatsapp)/i
   ]
 };
 
