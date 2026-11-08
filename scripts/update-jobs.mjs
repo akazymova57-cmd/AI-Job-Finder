@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 const config = require("../config.js");
 const DAY = 86400000;
 const MAX_JOBICY_PAGES = 5;
+const MAX_HIMALAYAS_PAGES = 10;
 const now = Date.now();
 
 function clean(value) {
@@ -79,6 +80,80 @@ async function fetchJobicy(source) {
   if (cursor) console.warn("Jobicy pagination capped at 500 listings per refresh.");
   return jobs;
 }
+
+function xmlText(item, tag) {
+  const match = item.match(new RegExp("<" + tag + "[^>]*>([\\s\\S]*?)</" + tag + ">", "i"));
+  if (!match) return "";
+  return match[1].replace(/^<!\[CDATA\[([\s\S]*)\]\]>$/i, "$1")
+    .replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'").replace(/&amp;/gi, "&").trim();
+}
+function fromWeWorkRemotely(item) {
+  const rawTitle = xmlText(item, "title");
+  const split = rawTitle.indexOf(":");
+  const company = split > 0 ? rawTitle.slice(0, split).trim() : "";
+  const title = split > 0 ? rawTitle.slice(split + 1).trim() : rawTitle;
+  const region = xmlText(item, "region");
+  const country = xmlText(item, "country");
+  const state = xmlText(item, "state");
+  const location = [region, country, state].filter(Boolean).join(", ") || "Remote — eligibility not specified";
+  const link = xmlText(item, "link") || xmlText(item, "guid");
+  const date = Date.parse(xmlText(item, "pubDate"));
+  const description = xmlText(item, "description");
+  return {
+    id: "weworkremotely-" + link, source_id: "weworkremotely", source_name: "We Work Remotely",
+    source_url: link, url: link, title, company_name: company, company_logo: "",
+    category: xmlText(item, "category"), tags: xmlText(item, "skills").split(",").map(clean).filter(Boolean),
+    job_type: typeOf(xmlText(item, "type")), publication_date: Number.isFinite(date) ? new Date(date).toISOString() : "",
+    candidate_required_location: location, salary: "", description
+  };
+}
+async function fetchWeWorkRemotely(source) {
+  const response = await fetch(source.apiUrl, { headers: { accept: "application/rss+xml, application/xml, text/xml" } });
+  if (!response.ok) throw new Error("HTTP " + response.status);
+  const xml = await response.text();
+  if (!/<rss[\s>]/i.test(xml) || !/<channel[\s>]/i.test(xml)) throw new Error("Unexpected RSS response");
+  return [...xml.matchAll(/<item[\s>][\s\S]*?<\/item>/gi)].map(match => fromWeWorkRemotely(match[0]));
+}
+function fromHimalayas(job) {
+  const locations = Array.isArray(job.locationRestrictions) ? job.locationRestrictions : [];
+  const timezones = Array.isArray(job.timezoneRestrictions) ? job.timezoneRestrictions : [];
+  const eligibility = locations.length ? locations.join(", ") : timezones.length
+    ? "Remote — timezone restrictions: " + timezones.map(value => "UTC" + (Number(value) >= 0 ? "+" : "") + value).join(", ")
+    : "Worldwide";
+  const salary = job.minSalary || job.maxSalary
+    ? [job.minSalary, job.maxSalary].filter(value => value !== null && value !== undefined).join("–") + (job.currency ? " " + job.currency : "") + (job.salaryPeriod ? " / " + job.salaryPeriod : "")
+    : "";
+  return {
+    id: "himalayas-" + String(job.guid || job.applicationLink || job.title),
+    source_id: "himalayas", source_name: "Himalayas",
+    source_url: job.guid || job.applicationLink, url: job.applicationLink || job.guid,
+    title: job.title, company_name: job.companyName, company_logo: job.companyLogo || "",
+    category: (job.parentCategories || job.categories || []).join(", "),
+    tags: [...(job.parentCategories || []), ...(job.categories || [])],
+    job_type: typeOf(job.employmentType), job_level: (job.seniority || []).join(", "),
+    publication_date: job.pubDate ? new Date(Number(job.pubDate) * 1000).toISOString() : "",
+    candidate_required_location: eligibility, salary, description: job.description || job.excerpt || ""
+  };
+}
+async function fetchHimalayas(source) {
+  const jobs = [];
+  let cursor = "";
+  for (let page = 0; page < MAX_HIMALAYAS_PAGES; page += 1) {
+    const url = new URL(source.apiUrl);
+    if (cursor) url.searchParams.set("cursor", cursor);
+    const response = await fetch(url, { headers: { accept: "application/json" } });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const payload = await response.json();
+    if (!Array.isArray(payload.jobs)) throw new Error("Unexpected API response");
+    jobs.push(...payload.jobs.map(fromHimalayas));
+    cursor = payload.nextCursor || "";
+    if (!cursor || payload.jobs.length === 0) break;
+  }
+  if (cursor) console.warn("Himalayas pagination capped at " + MAX_HIMALAYAS_PAGES + " pages per refresh.");
+  return jobs;
+}
+
 async function readPrevious() {
   try { return JSON.parse(await readFile(new URL("../data/jobs.json", import.meta.url), "utf8")); }
   catch { return { jobs: [] }; }
@@ -88,7 +163,7 @@ const sourceStatuses = [], collected = [];
 for (const [id, source] of Object.entries(config.sources)) {
   if (!source.enabled) continue;
   try {
-    const incoming = id === "remoteok" ? await fetchRemoteOK(source) : id === "jobicy" ? await fetchJobicy(source) : [];
+    const incoming = id === "remoteok" ? await fetchRemoteOK(source) : id === "jobicy" ? await fetchJobicy(source) : id === "weworkremotely" ? await fetchWeWorkRemotely(source) : id === "himalayas" ? await fetchHimalayas(source) : [];
     const accepted = incoming.filter(job => valid(job, source));
     collected.push(...accepted);
     sourceStatuses.push({ id, label: source.label, status: "success", fetchedAt: new Date(now).toISOString(), received: incoming.length, accepted: accepted.length });
