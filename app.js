@@ -332,7 +332,8 @@ function render() {
   const type = $("type").value;
   const salaryOnly = $("salary-only").checked;
 
-  const filtered = state.jobs.filter((job) => {\n    if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
+  const filtered = state.jobs.filter((job) => {
+    if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
     const text = getJobText(job);
     if (query && !normalizeText(query).split(/\s+/).filter(Boolean).every((word) => text.includes(word))) return false;
     if (!locationMatches(job, location)) return false;
