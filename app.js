@@ -501,6 +501,27 @@ function render() {
       return jobDate(b) - jobDate(a);
     }
 
+    // Experience-focused sorting promotes matching roles without hiding other jobs.
+    if (sortMode === "no-experience") {
+      const aNoExperience = /no experience|without experience|no prior experience|0\\s*[-–]?\\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(a));
+      const bNoExperience = /no experience|without experience|no prior experience|0\\s*[-–]?\\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(b));
+      const difference = Number(bNoExperience) - Number(aNoExperience);
+      if (difference) return difference;
+    }
+    if (sortMode === "entry") {
+      const difference = Number(isEntryLevelJob(b)) - Number(isEntryLevelJob(a));
+      if (difference) return difference;
+    }
+    if (sortMode === "intern") {
+      const difference = Number(internPattern.test(getJobText(b))) - Number(internPattern.test(getJobText(a)));
+      if (difference) return difference;
+    }
+    if (sortMode === "easy") {
+      const rank = { easy: 0, medium: 1, hard: 2 };
+      const difference = rank[getJobDifficulty(a).level] - rank[getJobDifficulty(b).level];
+      if (difference) return difference;
+    }
+
     if (state.resumeSkills.length) {
       const aScore = getResumeMatch(a);
       const bScore = getResumeMatch(b);
