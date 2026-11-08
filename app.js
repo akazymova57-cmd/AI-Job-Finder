@@ -279,7 +279,7 @@ function categoryMatches(job, category) {
 
 function getJobDifficulty(job) {
   const text = getJobText(job);
-  const seniorSignals = /senior|lead|principal|staff|architect|director|head of|5\\+? years|[5-9] years|\\b[1-9][0-9] years|руководител|архитектор/i.test(text);
+  const seniorSignals = /senior|lead|principal|staff|architect|director|head of|5\+? years|[5-9] years|\b[1-9][0-9] years|руководител|архитектор/i.test(text);
   const complexSignals = /advanced|expert|specialist|deep knowledge|hands-on experience|multiple programming languages|машинное обучение|глубокие знания/i.test(text);
   const skillCount = extractSkills(text).length;
   let points = 0;
@@ -296,7 +296,7 @@ function getJobDifficulty(job) {
 
 function getEnglishRequirement(job) {
   const text = cleanText(job.description || "");
-  const explicit = text.match(/(?:english|английск\\w*)[^.\\n]{0,45}\\b(A1|A2|B1|B2|C1|C2)\\b|\\b(A1|A2|B1|B2|C1|C2)\\b[^.\\n]{0,35}(?:english|английск\\w*)/i);
+  const explicit = text.match(/(?:english|английск\w*)[^.\n]{0,45}\b(A1|A2|B1|B2|C1|C2)\b|\b(A1|A2|B1|B2|C1|C2)\b[^.\n]{0,35}(?:english|английск\w*)/i);
   if (explicit) return (explicit[1] || explicit[2]).toUpperCase();
   if (/native[- ]level english|fluent in english|английский свободно|свободное владение английским/i.test(text)) return "C1+";
   if (/conversational english|intermediate english|английский разговорный|английский средний/i.test(text)) return "B1–B2";
@@ -307,7 +307,7 @@ function getEnglishRequirement(job) {
 function getExperienceRequirement(job) {
   const text = getJobText(job);
   if (/no experience|without experience|entry.level|без опыта|опыт не требуется/i.test(text)) return "Без опыта";
-  const years = text.match(/(?:at least |minimum |минимум )?(\\d+)\\s*\\+?\\s*(?:years?|yrs?|лет|года|год)/i);
+  const years = text.match(/(?:at least |minimum |минимум )?(\d+)\s*\+?\s*(?:years?|yrs?|лет|года|год)/i);
   if (years) return Number(years[1]) + "+ лет";
   if (seniorPattern.test(text)) return "Senior / Lead";
   if (entryPattern.test(text)) return "Начальный";
@@ -855,7 +855,7 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
   if (item.dataset.view === "all") {
     $("query").value = "";
     state.query = "";
-    $("location").value = "any";
+    $("location").value = "worldwide";
     $("level").value = "all";
     $("type").value = "all";
     $("sort").value = "match";
