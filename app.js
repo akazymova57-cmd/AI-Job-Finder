@@ -81,7 +81,19 @@ const SKILL_CATALOG = [
 
 const entryPattern = /junior|entry[\s-]?level|no experience|without experience|graduate|trainee|intern(?:ship)?|associate|assistant|coordinator|customer support|support agent|data annotat|virtual assistant|без опыта|начальн\w*\s+уровн|стаж[её]р|помощник/i;
 const internPattern = /intern(?:ship)?|trainee|стаж[её]ровк|стаж[её]р/i;
+
 const seniorPattern = /senior|lead|principal|staff engineer|head of|director|высококвалифицированн|руководител[ья]/i;
+
+function hasMandatoryExperienceRequirement(job) {
+  const text = getJobText(job);
+  if (seniorPattern.test(text)) return true;
+
+  const preferredOnly = /preferred|preferably|nice to have|желательно|желателен|будет плюсом/i.test(text);
+  const explicitYears = /(?:at least|minimum(?: of)?|more than|over)\\s*\\d+\\s*(?:years?|yrs?)|\\b\\d+\\s*\\+\\s*(?:years?|yrs?)|\\b\\d+\\s*(?:-|–|to)\\s*\\d+\\s*(?:years?|yrs?)\\b|\\b\\d+\\s*(?:years?|yrs?)\\s+(?:of )?experience|опыт\\s+от\\s+\\d+\\s+лет|не менее\\s+\\d+\\s+лет/i.test(text);
+  if (explicitYears && !preferredOnly) return true;
+
+  return /(?:must have|required|requirement is|обязателен|обязательно|требуется)\\s+(?:at least\\s+)?(?:prior\\s+)?experience|experience\\s+(?:is\\s+)?(?:required|mandatory)|опыт работы\\s+(?:обязателен|обязательно)|требуется опыт работы/i.test(text);
+}
 
 function cleanText(value) {
   return String(value || "")
@@ -469,6 +481,7 @@ function render() {
   const level = $("level").value;
   const type = $("type").value;
   const salaryOnly = $("salary-only").checked;
+  const noExperienceOnly = $("no-experience-only").checked;
 
   const filtered = state.jobs.filter((job) => {
     if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
@@ -478,6 +491,7 @@ function render() {
     if (level === "entry" && !entryPattern.test(text)) return false;
     if (level === "intern" && !internPattern.test(text)) return false;
     if (level === "experienced" && !seniorPattern.test(text)) return false;
+    if (noExperienceOnly && hasMandatoryExperienceRequirement(job)) return false;
     if (type !== "all" && job.job_type !== type) return false;
     if (salaryOnly && !job.salary) return false;
     if (state.quickCategory && !categoryMatches(job, state.quickCategory)) return false;
@@ -971,7 +985,7 @@ $("search-form").addEventListener("submit", (event) => {
   render();
 });
 
-["location", "level", "type", "sort", "salary-only"].forEach((id) => {
+["location", "level", "type", "sort", "salary-only", "no-experience-only"].forEach((id) => {
   $(id).addEventListener("change", () => {
     state.currentPage = 1;
     render();
