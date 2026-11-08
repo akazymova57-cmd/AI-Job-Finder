@@ -3,8 +3,9 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const config = require("../config.js");
 const DAY = 86400000;
-const MAX_JOBICY_PAGES = 5;
-const MAX_HIMALAYAS_PAGES = 10;
+const MAX_JOBICY_PAGES = 10;
+const MAX_HIMALAYAS_PAGES = 30;
+const HIMALAYAS_PAGE_DELAY_MS = 1100;
 const now = Date.now();
 
 function clean(value) {
@@ -64,11 +65,16 @@ async function fetchRemoteOK(source) {
 }
 async function fetchJobicy(source) {
   const jobs = [];
+  const seenCursors = new Set();
   let cursor = "";
   for (let page = 0; page < MAX_JOBICY_PAGES; page += 1) {
     const url = new URL(source.apiUrl);
     url.searchParams.set("count", "100");
-    if (cursor) url.searchParams.set("cursor", cursor);
+    if (cursor) {
+      if (seenCursors.has(cursor)) { console.warn("Jobicy returned a repeated cursor; stopping pagination."); break; }
+      seenCursors.add(cursor);
+      url.searchParams.set("cursor", cursor);
+    }
     const response = await fetch(url, { headers: { accept: "application/json" } });
     if (!response.ok) throw new Error("HTTP " + response.status);
     const payload = await response.json();
@@ -77,7 +83,7 @@ async function fetchJobicy(source) {
     cursor = payload.nextCursor || "";
     if (!cursor) break;
   }
-  if (cursor) console.warn("Jobicy pagination capped at 500 listings per refresh.");
+  if (cursor) console.warn("Jobicy pagination capped at " + (MAX_JOBICY_PAGES * 100) + " listings per refresh.");
   return jobs;
 }
 
@@ -138,10 +144,16 @@ function fromHimalayas(job) {
 }
 async function fetchHimalayas(source) {
   const jobs = [];
+  const seenCursors = new Set();
   let cursor = "";
   for (let page = 0; page < MAX_HIMALAYAS_PAGES; page += 1) {
+    if (page > 0) await new Promise(resolve => setTimeout(resolve, HIMALAYAS_PAGE_DELAY_MS));
     const url = new URL(source.apiUrl);
-    if (cursor) url.searchParams.set("cursor", cursor);
+    if (cursor) {
+      if (seenCursors.has(cursor)) { console.warn("Himalayas returned a repeated cursor; stopping pagination."); break; }
+      seenCursors.add(cursor);
+      url.searchParams.set("cursor", cursor);
+    }
     const response = await fetch(url, { headers: { accept: "application/json" } });
     if (!response.ok) throw new Error("HTTP " + response.status);
     const payload = await response.json();
@@ -150,7 +162,7 @@ async function fetchHimalayas(source) {
     cursor = payload.nextCursor || "";
     if (!cursor || payload.jobs.length === 0) break;
   }
-  if (cursor) console.warn("Himalayas pagination capped at " + MAX_HIMALAYAS_PAGES + " pages per refresh.");
+  if (cursor) console.warn("Himalayas pagination capped at " + (MAX_HIMALAYAS_PAGES * 20) + " listings per refresh.");
   return jobs;
 }
 
