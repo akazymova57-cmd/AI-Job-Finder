@@ -235,7 +235,7 @@ function getJobText(job) {
 function categoryMatches(job, category) {
   const text = getJobText(job);
   const patterns = {
-    it: /software|developer|engineering|engineer|programmer|devops|data analyst|qa |quality assurance|technical|sql|python|javascript|разработ|программ|тестиров|аналитик данных/i,
+    it: /software|developer|engineering|engineer|programmer|devops|data analyst|\\bqa\\b|quality assurance|technical|sql|python|javascript|разработ|программ|тестиров|аналитик данных/i,
     design: /design|designer|figma|ux\b|ui\b|graphic|visual|дизайн|дизайнер/i,
     marketing: /marketing|seo|sem\b|growth|social media|smm|performance|маркетинг|продвижен/i,
     support: /customer support|customer service|support agent|help desk|technical support|поддержк|служба поддержки/i,
@@ -721,6 +721,7 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
   const item = event.target.closest(".sidebar-link");
   if (!item) return;
   if (item.dataset.view === "about") {
+    setSidebarActive(item);
     closeSidebar();
     return;
   }
@@ -747,6 +748,12 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
     state.quickCategory = "";
     state.quickSource = "";
   } else if (item.dataset.view === "favorites") {
+    $("query").value = "";
+    state.query = "";
+    $("location").value = "any";
+    $("level").value = "all";
+    $("type").value = "all";
+    $("salary-only").checked = false;
     state.quickCategory = "";
     state.quickSource = "";
   } else if (item.dataset.employment) {
