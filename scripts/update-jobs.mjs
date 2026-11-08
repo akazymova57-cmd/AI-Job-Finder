@@ -82,9 +82,9 @@ async function fetchJobicy(source) {
 }
 
 function xmlText(item, tag) {
-  const match = item.match(new RegExp("<" + tag + "[^>]*>([\\s\\S]*?)</" + tag + ">", "i"));
+  const match = item.match(new RegExp("<" + tag + "[^>]*>([\s\S]*?)</" + tag + ">", "i"));
   if (!match) return "";
-  return match[1].replace(/^<!\[CDATA\[([\\s\\S]*)\]\]>$/i, "$1")
+  return match[1].replace(/^<!\[CDATA\[([\s\S]*)\]\]>$/i, "$1")
     .replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&quot;/gi, '"')
     .replace(/&apos;/gi, "'").replace(/&amp;/gi, "&").trim();
 }
@@ -112,8 +112,8 @@ async function fetchWeWorkRemotely(source) {
   const response = await fetch(source.apiUrl, { headers: { accept: "application/rss+xml, application/xml, text/xml" } });
   if (!response.ok) throw new Error("HTTP " + response.status);
   const xml = await response.text();
-  if (!/<rss[\\s>]/i.test(xml) || !/<channel[\\s>]/i.test(xml)) throw new Error("Unexpected RSS response");
-  return [...xml.matchAll(/<item[\\s>][\\s\\S]*?<\\/item>/gi)].map(match => fromWeWorkRemotely(match[0]));
+  if (!/<rss[\s>]/i.test(xml) || !/<channel[\s>]/i.test(xml)) throw new Error("Unexpected RSS response");
+  return [...xml.matchAll(/<item[\s>][\s\S]*?<\/item>/gi)].map(match => fromWeWorkRemotely(match[0]));
 }
 function fromHimalayas(job) {
   const locations = Array.isArray(job.locationRestrictions) ? job.locationRestrictions : [];
