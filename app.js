@@ -89,10 +89,10 @@ function hasMandatoryExperienceRequirement(job) {
   if (seniorPattern.test(text)) return true;
 
   const preferredOnly = /preferred|preferably|nice to have|желательно|желателен|будет плюсом/i.test(text);
-  const explicitYears = /(?:at least|minimum(?: of)?|more than|over)\\s*\\d+\\s*(?:years?|yrs?)|\\b\\d+\\s*\\+\\s*(?:years?|yrs?)|\\b\\d+\\s*(?:-|–|to)\\s*\\d+\\s*(?:years?|yrs?)\\b|\\b\\d+\\s*(?:years?|yrs?)\\s+(?:of )?experience|опыт\\s+от\\s+\\d+\\s+лет|не менее\\s+\\d+\\s+лет/i.test(text);
+  const explicitYears = /(?:at least|minimum(?: of)?|more than|over)\s*\d+\s*(?:years?|yrs?)|\b\d+\s*\+\s*(?:years?|yrs?)|\b\d+\s*(?:-|–|to)\s*\d+\s*(?:years?|yrs?)\b|\b\d+\s*(?:years?|yrs?)\s+(?:of )?experience|опыт\s+от\s+\d+\s+лет|не менее\s+\d+\s+лет/i.test(text);
   if (explicitYears && !preferredOnly) return true;
 
-  return /(?:must have|required|requirement is|обязателен|обязательно|требуется)\\s+(?:at least\\s+)?(?:prior\\s+)?experience|experience\\s+(?:is\\s+)?(?:required|mandatory)|опыт работы\\s+(?:обязателен|обязательно)|требуется опыт работы/i.test(text);
+  return /(?:must have|required|requirement is|обязателен|обязательно|требуется)\s+(?:at least\s+)?(?:prior\s+)?experience|experience\s+(?:is\s+)?(?:required|mandatory)|опыт работы\s+(?:обязателен|обязательно)|требуется опыт работы/i.test(text);
 }
 
 function cleanText(value) {
