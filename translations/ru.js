@@ -1,4 +1,5 @@
-window.APP_TRANSLATIONS = {
+window.APP_TRANSLATIONS = window.APP_TRANSLATIONS || {};
+window.APP_TRANSLATIONS.ru = {
   ru: {
     "Find jobs": "Найти вакансии",
     "Search jobs": "Поиск вакансий",
