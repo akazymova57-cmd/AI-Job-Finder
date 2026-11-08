@@ -215,11 +215,25 @@ async function loadJobs(force) {
 function locationMatches(job, filter) {
   if (filter === "any") return true;
 
-  const value = String(job.candidate_required_location || "").toLowerCase().replace(/[–—]/g, "-");
+  const value = String(job.candidate_required_location || "")
+    .toLowerCase()
+    .replace(/[–—]/g, "-")
+    .trim();
+
   if (filter === "worldwide") {
-    // Only include listings that explicitly allow applicants from any country.
-    // A generic "Remote" label or a missing eligibility field is not proof.
-    return /worldwide|anywhere(?: in the world)?|work from anywhere|global(?:ly)?|everywhere|all countries|any country|no (?:geo(?:graphic)?|location) restrictions|remote -? (?:global|worldwide)|🌍/.test(value);
+    // Worldwide means unrestricted eligibility, not a list of selected countries.
+    // Normalize harmless formatting, then require the entire location field to
+    // express global eligibility. Any appended country/region restriction fails.
+    if (!value || /eligibility not specified|not specified|unspecified|unknown|remote only/i.test(value)) return false;
+
+    const scope = value
+      .replace(/[()[\]{}]/g, " ")
+      .replace(/[|,:;/]+/g, " ")
+      .replace(/\bremote(?:\s+work)?\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return /^(?:🌍\s*)?(?:worldwide|anywhere(?: in the world)?|work from anywhere(?: in the world)?|global(?:ly)?|everywhere|all countries|any country|no (?:geo(?:graphic)?|location) restrictions)(?:\s+(?:remote|only|eligible|available|location|based|work|from|the|world))*[.!]?$/i.test(scope);
   }
   if (filter === "europe") return /europe|emea|european|uk|united kingdom|germany|france|spain|poland|netherlands|european union/i.test(value);
   if (filter === "americas") return /americ|united states|usa|canada|latin/i.test(value);
