@@ -570,7 +570,7 @@ function render() {
       const isEntry = isEntryLevelJob(job);
       const levelBadge = document.createElement("span");
       levelBadge.className = "badge " + (isEntry ? "entry" : "warning");
-      levelBadge.textContent = isEntry ? "Начальный уровень" : (seniorPattern.test(getJobText(job)) ? "Senior / Lead" : "Опыт не подтверждён");
+      levelBadge.textContent = isEntry ? "Начальный уровень" : (/\b(senior|lead|principal|staff|head of|director)\b|руководител/i.test(normalizeText(job.title || "")) ? "Senior / Lead" : "Опыт не подтверждён");
       badges.append(levelBadge);
       (Array.isArray(job.tags) ? job.tags : []).slice(0, 2).forEach((tag) => {
         const badge = document.createElement("span");
