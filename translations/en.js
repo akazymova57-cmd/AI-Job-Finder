@@ -1,6 +1,14 @@
-window.APP_TRANSLATIONS = {
-  en: {
+window.APP_TRANSLATIONS = window.APP_TRANSLATIONS || {};
+window.APP_TRANSLATIONS.en = {
   "Найти вакансии": "Find jobs",
+  "INTERNATIONAL REMOTE WORK": "INTERNATIONAL REMOTE WORK",
+  "Собираем удалённые вакансии и помогаем оценить совпадение с твоими навыками.": "Find remote jobs and compare them with your skills.",
+  "Вставь текст резюме или загрузи файл TXT/MD. Мы выделим известные навыки и покажем, какие из них встречаются в описании вакансии.": "Paste your resume or upload a TXT/MD file. We identify supported skills and compare them with each job description.",
+  "Например: Customer support, Excel, Google Sheets, CRM, research, English B1, prompt engineering…": "Example: Customer support, Excel, Google Sheets, CRM, research, English B1, prompt engineering…",
+  "Файл не отправляется на сервер и не сохраняется в браузере. Сейчас поддерживаются только текстовые файлы TXT и MD; PDF/DOCX пока не разбираются.": "Your file is not uploaded or stored. Only TXT and MD files are supported; PDF/DOCX parsing is not available yet.",
+  "Важно:": "Important:",
+  "Любая": "Any",
+  "Remote": "Remote",
   "Поиск вакансий": "Search jobs",
   "Найди работу": "Find work",
   "без границ.": "without borders.",
