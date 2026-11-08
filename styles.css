@@ -5,3 +5,38 @@
 @media(max-width:760px){.topbar{position:relative;flex-wrap:wrap;gap:9px;padding:12px 14px}.brand{flex:1}.primary-nav{order:3;flex-basis:100%;width:100%;padding:2px 0}.header-actions{margin-left:auto}.shell{padding:26px 14px 38px}.hero{padding:34px 20px;border-radius:18px}.hero h1{font-size:clamp(34px,8vw,48px);letter-spacing:-1.5px}.subhead{font-size:13px}.trust-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.trust-item{padding:12px}.trust-item strong{font-size:12px}.trust-item span{font-size:9px}.discovery-layout{grid-template-columns:1fr}.filter-sidebar{position:static}.filter-sidebar .filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-sidebar .extra-filters{grid-template-columns:1fr 1fr}.profile-panel,.tracker-panel{padding:17px}.profile-heading{align-items:flex-start;flex-direction:column;gap:7px}.section-heading h2{font-size:19px}}
 @media(max-width:480px){.topbar{padding-inline:10px}.brand{font-size:14px}.brand-mark{width:30px;height:30px}.live-label{font-size:9px;padding:6px 7px}.language-toggle{font-size:10px;padding:7px 8px}.shell{padding-inline:11px}.hero{padding:29px 16px}.hero h1{font-size:35px}.searchbar{flex-wrap:wrap;gap:7px;padding:7px}.search-icon{display:none}.searchbar input{flex:1 1 100%;width:100%;padding:9px 5px}.searchbar button{width:100%;padding:11px}.trust-strip{gap:7px}.trust-item{gap:8px;padding:10px}.trust-icon{width:30px;height:30px;flex-basis:30px}.filter-sidebar .filters,.filter-sidebar .extra-filters{grid-template-columns:1fr}.job-card{padding:14px}.job-insights{gap:7px;padding:10px}.card-bottom{align-items:flex-start}.apply{width:100%}.tracker-item{grid-template-columns:1fr}.tracker-item a{justify-self:start}.section-heading{align-items:flex-start;flex-wrap:wrap}.profile-panel,.tracker-panel{padding:14px}footer{padding:18px 12px;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Sidebar-first navigation refresh */
+.topbar{gap:14px;justify-content:space-between}
+.primary-nav{display:none!important}
+.menu-toggle{display:none!important}
+.sidebar-heading-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sidebar-heading,.filter-heading{display:block!important;margin:0;color:var(--text);font:750 15px Manrope,sans-serif}
+.sidebar-menu{display:grid;gap:15px}
+.sidebar-group{display:grid;gap:4px}
+.sidebar-group-title{display:block!important;margin:0 0 4px;padding:0 9px;color:#93a0b2;font-size:9px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase}
+.sidebar-menu .sidebar-link{display:block;width:100%;text-align:left;padding:10px 11px;font-size:11px}
+.sidebar-about{margin-top:2px}
+.sidebar-divider{height:1px;margin:18px 0 16px;background:var(--line)}
+.filter-heading{margin-bottom:15px}
+.sidebar-close{display:none!important}
+.sidebar-backdrop{display:none!important}
+.filter-sidebar:before{display:none!important}
+@media(max-width:760px){
+  .topbar{position:sticky;top:0;z-index:45;flex-wrap:nowrap;min-height:62px;padding:10px 14px;background:rgba(255,255,255,.97)}
+  .brand{flex:1}
+  .menu-toggle{display:flex!important;width:40px;height:40px;flex:0 0 40px;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+  .menu-toggle span{display:block;width:17px;height:2px;border-radius:2px;background:#40516b}
+  .header-actions{margin-left:0}
+  .live-label{display:none}
+  .discovery-layout{display:block}
+  .filter-sidebar{position:fixed;z-index:60;top:0;bottom:0;left:0;width:min(310px,86vw);max-width:calc(100vw - 42px);height:100dvh;overflow-y:auto;overscroll-behavior:contain;transform:translateX(-105%);transition:transform .24s ease;border:0;border-radius:0 18px 18px 0;padding:22px 18px 30px;box-shadow:18px 0 50px rgba(20,35,65,.18)}
+  body.sidebar-open .filter-sidebar{transform:translateX(0)}
+  .sidebar-close{display:grid!important;place-items:center;width:34px;height:34px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#52627a;font-size:22px;line-height:1;cursor:pointer}
+  .sidebar-backdrop{display:block!important;position:fixed;z-index:55;inset:0;border:0;background:rgba(16,27,48,.42);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease}
+  body.sidebar-open .sidebar-backdrop{opacity:1;visibility:visible}
+  body.sidebar-open{overflow:hidden}
+  .filter-sidebar:before{display:none!important}
+  .filter-sidebar .filters,.filter-sidebar .extra-filters{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.filter-sidebar,.sidebar-backdrop{transition:none!important}}
