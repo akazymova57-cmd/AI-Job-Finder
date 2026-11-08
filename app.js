@@ -276,6 +276,66 @@ function categoryMatches(job, category) {
   return Boolean(patterns[category] && patterns[category].test(text));
 }
 
+
+function getJobDifficulty(job) {
+  const text = getJobText(job);
+  const seniorSignals = /senior|lead|principal|staff|architect|director|head of|5\+? years|[5-9] years|\b[1-9][0-9] years|руководител|архитектор/i.test(text);
+  const complexSignals = /advanced|expert|specialist|deep knowledge|hands-on experience|multiple programming languages|машинное обучение|глубокие знания/i.test(text);
+  const skillCount = extractSkills(text).length;
+  let points = 0;
+  if (seniorSignals) points += 2;
+  if (complexSignals) points += 1;
+  if (skillCount >= 8) points += 2;
+  else if (skillCount >= 4) points += 1;
+  if (/bachelor|master|phd|degree required|certification required|высшее образование обязательно/i.test(text)) points += 1;
+  if (entryPattern.test(text) && !seniorSignals) points -= 2;
+  if (/no experience|without experience|entry.level|без опыта|обучение предоставляется/i.test(text)) points -= 1;
+  const level = points <= 0 ? "easy" : points <= 2 ? "medium" : "hard";
+  return { level, label: level === "easy" ? "Лёгкая" : level === "medium" ? "Средняя" : "Высокая", bars: level === "easy" ? 2 : level === "medium" ? 3 : 5 };
+}
+
+function getEnglishRequirement(job) {
+  const text = cleanText(job.description || "");
+  const explicit = text.match(/(?:english|английск\w*)[^.\n]{0,45}\b(A1|A2|B1|B2|C1|C2)\b|\b(A1|A2|B1|B2|C1|C2)\b[^.\n]{0,35}(?:english|английск\w*)/i);
+  if (explicit) return (explicit[1] || explicit[2]).toUpperCase();
+  if (/native[- ]level english|fluent in english|английский свободно|свободное владение английским/i.test(text)) return "C1+";
+  if (/conversational english|intermediate english|английский разговорный|английский средний/i.test(text)) return "B1–B2";
+  if (/basic english|английский базовый|начальный английский/i.test(text)) return "A1–A2";
+  return "Не указан";
+}
+
+function getExperienceRequirement(job) {
+  const text = getJobText(job);
+  if (/no experience|without experience|entry.level|без опыта|опыт не требуется/i.test(text)) return "Без опыта";
+  const years = text.match(/(?:at least |minimum |минимум )?(\d+)\s*\+?\s*(?:years?|yrs?|лет|года|год)/i);
+  if (years) return Number(years[1]) + "+ лет";
+  if (seniorPattern.test(text)) return "Senior / Lead";
+  if (entryPattern.test(text)) return "Начальный";
+  return "Не указан";
+}
+
+function getFreshnessLabel(job) {
+  const published = jobDate(job);
+  if (!published) return "Дата не указана";
+  const days = Math.max(0, Math.floor((Date.now() - published) / 86400000));
+  if (days === 0) return "Сегодня";
+  if (days === 1) return "Вчера";
+  return days + " дн. назад";
+}
+
+function createInsight(label, value, className) {
+  const item = document.createElement("div");
+  item.className = "insight-item" + (className ? " " + className : "");
+  const caption = document.createElement("span");
+  caption.className = "insight-label";
+  caption.textContent = label;
+  const content = document.createElement("strong");
+  content.className = "insight-value";
+  content.textContent = value;
+  item.append(caption, content);
+  return item;
+}
+
 function getResumeMatch(job) {
   if (!state.resumeSkills.length) return null;
 
@@ -494,27 +554,52 @@ function render() {
 
       const badges = document.createElement("div");
       badges.className = "badges";
-
+      const globalEligibility = locationMatches(job, "worldwide");
+      const geoBadge = document.createElement("span");
+      geoBadge.className = "badge " + (globalEligibility ? "entry" : "warning");
+      geoBadge.textContent = globalEligibility ? "🌍 Worldwide" : (job.candidate_required_location ? "Ограничения: " + job.candidate_required_location : "География не указана");
+      badges.append(geoBadge);
       const isEntry = entryPattern.test(getJobText(job));
       const levelBadge = document.createElement("span");
       levelBadge.className = "badge " + (isEntry ? "entry" : "warning");
-      levelBadge.textContent = isEntry ? "Есть признаки начального уровня" : "Уровень не подтверждён";
+      levelBadge.textContent = isEntry ? "Начальный уровень" : (seniorPattern.test(getJobText(job)) ? "Senior / Lead" : "Опыт не подтверждён");
       badges.append(levelBadge);
-
-      (Array.isArray(job.tags) ? job.tags : []).slice(0, 3).forEach((tag) => {
+      (Array.isArray(job.tags) ? job.tags : []).slice(0, 2).forEach((tag) => {
         const badge = document.createElement("span");
         badge.className = "badge";
         badge.textContent = tag;
         badges.append(badge);
       });
+      card.append(badges);
+
+      const difficulty = getJobDifficulty(job);
+      const insights = document.createElement("div");
+      insights.className = "job-insights";
+      const difficultyItem = createInsight("Сложность · оценка", difficulty.label, "difficulty-" + difficulty.level);
+      const difficultyTrack = document.createElement("div");
+      difficultyTrack.className = "difficulty-track " + difficulty.level;
+      for (let index = 0; index < 5; index += 1) {
+        const segment = document.createElement("span");
+        if (index < difficulty.bars) segment.classList.add("filled");
+        difficultyTrack.append(segment);
+      }
+      difficultyItem.append(difficultyTrack);
+      insights.append(difficultyItem);
+      insights.append(createInsight("Английский · требование", getEnglishRequirement(job)));
+      insights.append(createInsight("Опыт · требование", getExperienceRequirement(job)));
+      insights.append(createInsight("Опубликована", getFreshnessLabel(job)));
+      card.append(insights);
 
       if (job.salary) {
-        const salaryBadge = document.createElement("span");
-        salaryBadge.className = "badge";
-        salaryBadge.textContent = "Зарплата указана";
-        badges.append(salaryBadge);
+        const salaryBox = document.createElement("div");
+        salaryBox.className = "salary-highlight";
+        const salaryValue = document.createElement("strong");
+        salaryValue.textContent = job.salary;
+        const salaryLabel = document.createElement("span");
+        salaryLabel.textContent = "Зарплата из объявления";
+        salaryBox.append(salaryValue, salaryLabel);
+        card.append(salaryBox);
       }
-      card.append(badges);
 
       const translationButton = document.createElement("button");
       translationButton.type = "button";
@@ -550,27 +635,32 @@ function render() {
         const match = getResumeMatch(job);
         const matchDetails = document.createElement("div");
         matchDetails.className = "match-details";
-
         if (!match || match.score === null) {
           matchDetails.textContent = "Совпадение навыков не рассчитано: в описании вакансии не распознаны навыки из текущего словаря.";
         } else {
-          const matchLabel = document.createElement("div");
+          const row = document.createElement("div");
+          row.className = "match-score-row";
+          const matchLabel = document.createElement("span");
           matchLabel.className = "match";
-          matchLabel.textContent = "Совпадение распознанных навыков: " + match.score + "% (" + match.matched.length + " из " + match.total + ")";
-
+          matchLabel.textContent = "Совпадение навыков · " + match.score + "%";
+          const matchCount = document.createElement("span");
+          matchCount.textContent = match.matched.length + " из " + match.total;
+          row.append(matchLabel, matchCount);
+          const track = document.createElement("div");
+          track.className = "match-track";
+          const fill = document.createElement("span");
+          fill.className = "filled";
+          fill.style.flex = String(Math.max(1, match.score)) + " 1 0";
+          const remainder = document.createElement("span");
+          remainder.style.flex = String(Math.max(1, 100 - match.score)) + " 1 0";
+          track.append(fill, remainder);
           const matchedLine = document.createElement("div");
           matchedLine.className = "match-details";
-          const matchedStrong = document.createElement("strong");
-          matchedStrong.textContent = "Совпало: ";
-          matchedLine.append(matchedStrong, document.createTextNode(match.matched.length ? match.matched.join(", ") : "пока нет"));
-
+          matchedLine.textContent = "Совпало: " + (match.matched.length ? match.matched.join(", ") : "пока нет");
           const missingLine = document.createElement("div");
           missingLine.className = "match-details";
-          const missingStrong = document.createElement("strong");
-          missingStrong.textContent = "Не найдено в резюме: ";
-          missingLine.append(missingStrong, document.createTextNode(match.missing.length ? match.missing.join(", ") : "все распознанные навыки вакансии есть в резюме"));
-
-          matchDetails.append(matchLabel, matchedLine, missingLine);
+          missingLine.textContent = "Не найдено: " + (match.missing.length ? match.missing.join(", ") : "все распознанные навыки найдены");
+          matchDetails.append(row, track, matchedLine, missingLine);
         }
         card.append(matchDetails);
       } else {
@@ -765,7 +855,7 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
   if (item.dataset.view === "all") {
     $("query").value = "";
     state.query = "";
-    $("location").value = "any";
+    $("location").value = "worldwide";
     $("level").value = "all";
     $("type").value = "all";
     $("sort").value = "match";
