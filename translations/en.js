@@ -1,6 +1,5 @@
 window.APP_TRANSLATIONS = window.APP_TRANSLATIONS || {};
 window.APP_TRANSLATIONS.en = {
-  en: {
   "Найти вакансии": "Find jobs",
   "Поиск вакансий": "Search jobs",
   "Найди работу": "Find work",
