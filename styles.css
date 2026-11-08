@@ -418,3 +418,91 @@ footer { min-width: 0; flex-wrap: wrap; overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: reduce) {
   .app-sidebar, .sidebar-backdrop { transition: none; }
 }
+
+
+/* Mobile v2: explicit viewport layout and cache-safe off-canvas navigation */
+@media (max-width: 1024px) {
+  .app-layout { display: block !important; width: 100%; max-width: 100%; }
+  .app-sidebar {
+    position: fixed !important;
+    top: 0 !important; bottom: 0 !important; left: 0 !important;
+    right: auto !important;
+    display: flex !important;
+    width: min(320px, 86vw) !important;
+    max-width: calc(100vw - 48px) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    z-index: 1002 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    transform: translate3d(-110%, 0, 0) !important;
+    visibility: hidden !important;
+    transition: transform .22s ease, visibility .22s ease !important;
+  }
+  body.sidebar-open .app-sidebar {
+    transform: translate3d(0, 0, 0) !important;
+    visibility: visible !important;
+  }
+  .menu-toggle {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 20 !important;
+    flex: 0 0 40px !important;
+  }
+  .sidebar-close { display: inline-flex !important; }
+  .sidebar-backdrop {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1001 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  body.sidebar-open .sidebar-backdrop {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+  body.sidebar-open { overflow: hidden !important; }
+  .topbar {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    gap: 8px !important;
+  }
+  .shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .jobs-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 600px) {
+  html, body { width: 100% !important; max-width: 100% !important; }
+  .topbar { flex-wrap: nowrap !important; }
+  .brand { min-width: 0 !important; flex: 1 1 auto !important; white-space: nowrap; }
+  .header-actions { flex: 0 1 auto !important; min-width: 0 !important; }
+  .live-label { white-space: nowrap; }
+  .searchbar { width: 100% !important; max-width: 100% !important; gap: 7px !important; padding: 7px !important; }
+  .searchbar input { width: 1px !important; flex: 1 1 0 !important; }
+  .searchbar button { flex: 0 0 auto !important; max-width: 42vw !important; padding: 11px 9px !important; font-size: 12px !important; white-space: normal !important; }
+  .profile-heading { align-items: flex-start !important; flex-wrap: wrap !important; }
+  .resume-actions, .card-bottom, .tracker-item { min-width: 0 !important; max-width: 100% !important; flex-wrap: wrap !important; }
+  .filters, .extra-filters { width: 100% !important; max-width: 100% !important; }
+  .filters label, .sort-label { min-width: 0 !important; max-width: 100% !important; flex-wrap: wrap !important; }
+  .filters select, .sort-label select { width: 100% !important; max-width: 100% !important; }
+  .job-card, .profile-panel, .tracker-panel, .notice, .results-section, .discovery-layout { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
+  .job-top, .section-heading { min-width: 0 !important; max-width: 100% !important; }
+  .pagination { width: 100% !important; max-width: 100% !important; flex-wrap: wrap !important; }
+  footer { width: 100% !important; max-width: 100% !important; }
+}
