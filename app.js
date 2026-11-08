@@ -11,7 +11,10 @@ const state = {
   loading: false,
   savedJobs: readSavedJobs(),
   currentPage: 1,
-  pageSize: 10
+  pageSize: 10,
+  quickCategory: "",
+  quickSource: "",
+  quickView: "all"
 };
 
 const $ = (id) => document.getElementById(id);
@@ -229,6 +232,19 @@ function getJobText(job) {
   ].join(" "));
 }
 
+function categoryMatches(job, category) {
+  const text = getJobText(job);
+  const patterns = {
+    it: /software|developer|engineering|engineer|programmer|devops|data analyst|\\bqa\\b|quality assurance|technical|sql|python|javascript|разработ|программ|тестиров|аналитик данных/i,
+    design: /design|designer|figma|ux\b|ui\b|graphic|visual|дизайн|дизайнер/i,
+    marketing: /marketing|seo|sem\b|growth|social media|smm|performance|маркетинг|продвижен/i,
+    support: /customer support|customer service|support agent|help desk|technical support|поддержк|служба поддержки/i,
+    writing: /copywriter|copywriting|content writer|technical writer|editor|writing|копирайт|редактор|автор текст/i,
+    admin: /administrative|administrator|virtual assistant|operations|coordinator|data entry|office manager|администратор|ассистент|ввод данных/i
+  };
+  return Boolean(patterns[category] && patterns[category].test(text));
+}
+
 function getResumeMatch(job) {
   if (!state.resumeSkills.length) return null;
 
@@ -365,6 +381,15 @@ function render() {
     if (level === "experienced" && !seniorPattern.test(text)) return false;
     if (type !== "all" && job.job_type !== type) return false;
     if (salaryOnly && !job.salary) return false;
+    if (state.quickCategory && !categoryMatches(job, state.quickCategory)) return false;
+    if (state.quickSource && job.source_id !== state.quickSource) return false;
+    if (state.quickView === "favorites" && !state.savedJobs.some((saved) => saved.url === safeJobUrl(job.url, job.source_id))) return false;
+    if (state.quickView === "today") {
+      const published = jobDate(job);
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      if (published < startOfToday) return false;
+    }
     return true;
   });
 
@@ -666,6 +691,90 @@ function renderTracker() {
     list.append(item);
   });
 }
+
+
+function setSidebarActive(element) {
+  document.querySelectorAll("#sidebar-nav .sidebar-link").forEach((link) => {
+    const active = link === element;
+    link.classList.toggle("is-active", active);
+    if (active) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+}
+
+function closeSidebar() {
+  document.body.classList.remove("sidebar-open");
+  $("sidebar-open")?.setAttribute("aria-expanded", "false");
+}
+
+$("sidebar-open")?.addEventListener("click", () => {
+  document.body.classList.add("sidebar-open");
+  $("sidebar-open").setAttribute("aria-expanded", "true");
+});
+$("sidebar-close")?.addEventListener("click", closeSidebar);
+$("sidebar-backdrop")?.addEventListener("click", closeSidebar);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeSidebar();
+});
+
+$("sidebar-nav")?.addEventListener("click", (event) => {
+  const item = event.target.closest(".sidebar-link");
+  if (!item) return;
+  if (item.dataset.view === "about") {
+    setSidebarActive(item);
+    closeSidebar();
+    return;
+  }
+
+  state.currentPage = 1;
+  state.quickCategory = item.dataset.category || "";
+  state.quickSource = item.dataset.source || "";
+  state.quickView = item.dataset.view || (item.dataset.category || item.dataset.source || item.dataset.employment ? "filtered" : "all");
+
+  if (item.dataset.view === "all") {
+    $("query").value = "";
+    state.query = "";
+    $("location").value = "any";
+    $("level").value = "all";
+    $("type").value = "all";
+    $("sort").value = "match";
+    $("salary-only").checked = false;
+    state.quickCategory = "";
+    state.quickSource = "";
+  } else if (item.dataset.view === "today") {
+    $("sort").value = "newest";
+    $("query").value = "";
+    state.query = "";
+    state.quickCategory = "";
+    state.quickSource = "";
+  } else if (item.dataset.view === "favorites") {
+    $("query").value = "";
+    state.query = "";
+    $("location").value = "any";
+    $("level").value = "all";
+    $("type").value = "all";
+    $("salary-only").checked = false;
+    state.quickCategory = "";
+    state.quickSource = "";
+  } else if (item.dataset.employment) {
+    $("type").value = item.dataset.employment;
+    state.quickCategory = "";
+    state.quickSource = "";
+  } else if (item.dataset.category) {
+    $("type").value = "all";
+    state.quickSource = "";
+  } else if (item.dataset.source) {
+    $("type").value = "all";
+    state.quickCategory = "";
+  }
+
+  setSidebarActive(item);
+  closeSidebar();
+  render();
+  if (window.matchMedia("(max-width: 900px)").matches) {
+    $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+});
 
 [$("pagination-top"), $("pagination")].filter(Boolean).forEach((nav) => nav.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-page]");
