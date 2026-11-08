@@ -10,7 +10,7 @@ for (const [index, job] of snapshot.jobs.entries()) {
   if (!job || typeof job !== "object") { issues.push(label + ": invalid job record"); continue; }
   if (!String(job.title || "").trim()) issues.push(label + ": missing title");
   if (!String(job.company_name || "").trim()) issues.push(label + ": missing company");
-  const legacyRemotive = !job.source_id && /(^|\\.)remotive\\.com$/i.test((() => { try { return new URL(job.url).hostname; } catch { return ""; } })());
+  const legacyRemotive = !job.source_id && /(^|\.)remotive\.com$/i.test((() => { try { return new URL(job.url).hostname; } catch { return ""; } })());
   const source = config.sources[job.source_id] || (legacyRemotive ? config.sources.remotive : null);
   if (!source || (!legacyRemotive && !source.enabled)) { issues.push(label + ": unknown or disabled source " + String(job.source_id)); continue; }
   const date = Date.parse(job.publication_date || "");
