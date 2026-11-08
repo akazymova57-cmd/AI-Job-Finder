@@ -348,190 +348,80 @@ footer {
 }
 
 
-/* Responsive application shell and off-canvas navigation */
-html { min-width: 320px; }
-body { width: 100%; min-width: 320px; }
-img, svg, video, canvas, iframe { max-width: 100%; }
-button, a, input, select, textarea, p, h1, h2, h3, span, div { min-width: 0; }
-a, p, h1, h2, h3, .company, .meta, .status, .source-note { overflow-wrap: anywhere; }
-.app-layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); align-items: start; width: 100%; max-width: 1800px; margin: 0 auto; min-width: 0; }
-.app-sidebar { position: sticky; top: 0; z-index: 20; display: flex; flex-direction: column; gap: 18px; width: 248px; height: calc(100vh - 1px); min-height: 520px; padding: 24px 14px 18px; overflow-y: auto; border-right: 1px solid var(--line); background: rgba(12, 22, 37, .96); }
-.sidebar-heading { display: flex; align-items: center; justify-content: space-between; padding: 0 10px; }
-.sidebar-title { color: var(--text); font: 700 14px Manrope, sans-serif; }
-.sidebar-close { display: none; border: 0; background: transparent; color: var(--text); font-size: 28px; line-height: 1; cursor: pointer; }
-.sidebar-nav { display: grid; gap: 4px; }
-.sidebar-group { display: grid; gap: 3px; padding-top: 14px; }
-.sidebar-group-title { padding: 0 11px 7px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-.sidebar-link { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 38px; padding: 9px 11px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #c3d0e1; font: 500 12px 'DM Sans', sans-serif; text-align: left; text-decoration: none; cursor: pointer; overflow-wrap: anywhere; }
-.sidebar-link:hover { background: #1a2b40; color: var(--text); }
-.sidebar-link.is-active { border-color: #34584f; background: #1c3935; color: var(--accent); }
-.sidebar-icon { flex: 0 0 18px; color: var(--accent); font-size: 16px; text-align: center; }
-.sidebar-footnote { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid var(--line); color: #7f91a9; font-size: 10px; line-height: 1.5; }
-.menu-toggle { display: none; width: 40px; height: 40px; flex: 0 0 40px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); cursor: pointer; }
-.menu-toggle span { display: block; width: 18px; height: 2px; border-radius: 2px; background: var(--text); }
-.sidebar-backdrop { display: none; }
-.shell { width: 100%; max-width: 1600px; min-width: 0; margin: 0; }
-.topbar { min-width: 0; gap: 12px; }
-.header-actions { min-width: 0; flex-wrap: wrap; justify-content: flex-end; }
-.job-card, .tracker-item, .profile-panel, .tracker-panel, .notice, .filter-sidebar { min-width: 0; }
-.card-bottom { flex-wrap: wrap; }
-.apply { white-space: normal; overflow-wrap: anywhere; }
-.pagination { max-width: 100%; }
-.translation-output { overflow-wrap: anywhere; }
-footer { min-width: 0; flex-wrap: wrap; overflow-wrap: anywhere; }
 
-@media (max-width: 900px) {
-  .app-layout { display: block; }
-  .app-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 60; width: min( min(84vw, 320px), calc(100vw - 52px) ); height: 100dvh; min-height: 0; padding: 20px 14px; border-right: 1px solid var(--line); background: #0d1929; box-shadow: 18px 0 48px #0008; transform: translateX(-105%); transition: transform .24s ease; visibility: hidden; }
-  body.sidebar-open .app-sidebar { transform: translateX(0); visibility: visible; }
-  .sidebar-close { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
-  .sidebar-backdrop { position: fixed; inset: 0; z-index: 50; display: block; width: 100%; height: 100%; border: 0; background: rgba(2, 8, 16, .68); opacity: 0; visibility: hidden; transition: opacity .24s ease, visibility .24s ease; }
-  body.sidebar-open .sidebar-backdrop { opacity: 1; visibility: visible; }
-  .menu-toggle { display: inline-flex; }
-  .topbar { justify-content: flex-start; padding: 10px 16px; }
-  .topbar > .brand { flex: 1 1 auto; }
-  .header-actions { flex: 0 1 auto; }
-  .shell { padding: 42px clamp(14px, 3vw, 24px) 36px; }
-  body.sidebar-open { overflow: hidden; }
-}
-@media (max-width: 430px) {
-  .topbar { gap: 8px; padding-inline: 10px; }
-  .brand { gap: 7px; font-size: 14px; }
-  .brand-mark { width: 28px; height: 28px; }
-  .header-actions { gap: 5px; }
-  .language-toggle { padding: 7px 8px; font-size: 11px; }
-  .live-label { padding: 6px 7px; font-size: 9px; }
-  .shell { padding: 34px 12px 30px; }
-  .hero h1 { font-size: clamp(32px, 9vw, 42px); letter-spacing: -1.4px; overflow-wrap: normal; }
-  .subhead { font-size: 14px; line-height: 1.5; }
-  .profile-panel, .tracker-panel { padding: 14px; }
-  .section-heading { align-items: flex-start; gap: 10px; flex-wrap: wrap; }
-  .section-heading h2 { font-size: 19px; }
-  .section-heading .ghost-button { flex: 0 0 auto; }
-  .job-card { padding: 15px; }
-  .card-bottom { align-items: flex-start; gap: 9px; }
-  .card-bottom > * { max-width: 100%; }
-  .pagination { gap: 4px; }
-  .page-button { min-width: 32px; padding: 7px; }
-  footer { padding-inline: 12px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .app-sidebar, .sidebar-backdrop { transition: none; }
-}
-
-
-/* Mobile v2: explicit viewport layout and cache-safe off-canvas navigation */
-@media (max-width: 1024px) {
-  .app-layout { display: block !important; width: 100%; max-width: 100%; }
-  .app-sidebar {
-    position: fixed !important;
-    top: 0 !important; bottom: 0 !important; left: 0 !important;
-    right: auto !important;
-    display: flex !important;
-    width: min(320px, 86vw) !important;
-    max-width: calc(100vw - 48px) !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    min-height: 0 !important;
-    z-index: 1002 !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    transform: translate3d(-110%, 0, 0) !important;
-    visibility: hidden !important;
-    transition: transform .22s ease, visibility .22s ease !important;
-  }
-  body.sidebar-open .app-sidebar {
-    transform: translate3d(0, 0, 0) !important;
-    visibility: visible !important;
-  }
-  .menu-toggle {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: relative !important;
-    z-index: 20 !important;
-    flex: 0 0 40px !important;
-  }
-  .sidebar-close { display: inline-flex !important; }
-  .sidebar-backdrop {
-    display: block !important;
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 1001 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
-  body.sidebar-open .sidebar-backdrop {
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-  }
-  body.sidebar-open { overflow: hidden !important; }
-  .topbar {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-    gap: 8px !important;
-  }
-  .shell {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-  .jobs-grid { grid-template-columns: minmax(0, 1fr) !important; }
-}
-@media (max-width: 600px) {
-  html, body { width: 100% !important; max-width: 100% !important; }
-  .topbar { flex-wrap: nowrap !important; }
-  .brand { min-width: 0 !important; flex: 1 1 auto !important; white-space: nowrap; }
-  .header-actions { flex: 0 1 auto !important; min-width: 0 !important; }
-  .live-label { white-space: nowrap; }
-  .searchbar { width: 100% !important; max-width: 100% !important; gap: 7px !important; padding: 7px !important; }
-  .searchbar input { width: 1px !important; flex: 1 1 0 !important; }
-  .searchbar button { flex: 0 0 auto !important; max-width: 42vw !important; padding: 11px 9px !important; font-size: 12px !important; white-space: normal !important; }
-  .profile-heading { align-items: flex-start !important; flex-wrap: wrap !important; }
-  .resume-actions, .card-bottom, .tracker-item { min-width: 0 !important; max-width: 100% !important; flex-wrap: wrap !important; }
-  .filters, .extra-filters { width: 100% !important; max-width: 100% !important; }
-  .filters label, .sort-label { min-width: 0 !important; max-width: 100% !important; flex-wrap: wrap !important; }
-  .filters select, .sort-label select { width: 100% !important; max-width: 100% !important; }
-  .job-card, .profile-panel, .tracker-panel, .notice, .results-section, .discovery-layout { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
-  .job-top, .section-heading { min-width: 0 !important; max-width: 100% !important; }
-  .pagination { width: 100% !important; max-width: 100% !important; flex-wrap: wrap !important; }
-  footer { width: 100% !important; max-width: 100% !important; }
-}
-
-
-/* Mobile layout cleanup v3: contain every layout region and simplify drawer navigation */
-html, body {
+/* Unified responsive application layout */
+html {
+  min-width: 320px;
   max-width: 100%;
   overflow-x: clip;
+  scroll-behavior: smooth;
 }
-body { min-width: 320px; }
-.app-layout, .shell, .discovery-layout, .results-section,
-.profile-panel, .tracker-panel, .notice, footer,
-.filter-sidebar, #jobs, .job-card, .tracker-list {
-  min-width: 0;
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  width: 100%;
+  min-width: 320px;
   max-width: 100%;
+  margin: 0;
+  overflow-x: clip;
 }
-.app-layout { width: 100%; }
-.shell { width: 100%; }
-.job-card, .job-card * , .tracker-item, .tracker-item * {
+img, svg, video, canvas, iframe { display: block; max-width: 100%; }
+input, select, textarea, button { max-width: 100%; }
+p, h1, h2, h3, a, span, label, .company, .meta, .status,
+.source-note, .privacy-note, .file-name {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.job-card img, .job-card iframe, .job-card video { max-width: 100%; }
-.sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.sidebar-nav { min-width: 0; overflow-x: hidden; }
+.app-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  align-items: stretch;
+  width: min(100%, 1920px);
+  min-width: 0;
+  margin: 0 auto;
+}
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 260px;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  padding: 24px 14px 18px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-right: 1px solid var(--line);
+  background: rgba(12, 22, 37, .98);
+}
+.sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 10px;
+}
+.sidebar-title { color: var(--text); font: 700 14px Manrope, sans-serif; }
+.sidebar-close {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+.sidebar-nav { display: grid; gap: 4px; min-width: 0; }
 .sidebar-group {
-  display: block;
-  padding: 8px 0 0;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding-top: 12px;
   border-top: 1px solid #ffffff12;
 }
 .sidebar-group-title {
@@ -539,8 +429,8 @@ body { min-width: 320px; }
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  width: 100%;
-  padding: 10px 11px 7px;
+  min-width: 0;
+  padding: 8px 11px;
   color: var(--muted);
   font-size: 10px;
   font-weight: 700;
@@ -557,55 +447,218 @@ body { min-width: 320px; }
   line-height: 1;
 }
 .sidebar-group[open] > .sidebar-group-title::after { content: "−"; }
-.sidebar-group > .sidebar-link { margin-top: 2px; }
-.sidebar-footnote { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid #ffffff12; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #c3d0e1;
+  font: 500 12px 'DM Sans', sans-serif;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.sidebar-link:hover { background: #1a2b40; color: var(--text); }
+.sidebar-link.is-active { border-color: #34584f; background: #1c3935; color: var(--accent); }
+.sidebar-icon { flex: 0 0 18px; color: var(--accent); font-size: 16px; text-align: center; }
+.sidebar-footnote {
+  margin-top: auto;
+  padding: 12px 8px 0;
+  border-top: 1px solid #ffffff12;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.menu-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+  cursor: pointer;
+}
+.menu-toggle span { display: block; width: 18px; height: 2px; border-radius: 2px; background: var(--text); }
+.sidebar-backdrop { display: none; }
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(100%, 1920px);
+  min-width: 0;
+  min-height: 72px;
+  margin: 0 auto;
+  padding: 0 32px 0 292px;
+}
+.header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; }
+.shell {
+  width: 100%;
+  max-width: 1660px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 52px clamp(24px, 3vw, 48px) 45px;
+}
+.hero { min-width: 0; }
+.searchbar { width: 100%; min-width: 0; }
+.searchbar input { flex: 1 1 0; width: 100%; min-width: 0; }
+.discovery-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 290px) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 30px);
+  align-items: start;
+  min-width: 0;
+}
+.filter-sidebar { position: sticky; top: 18px; min-width: 0; max-width: 100%; }
+.results-section, #jobs, .jobs-grid, .job-card { min-width: 0; max-width: 100%; }
+.jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.job-card, .job-card *, .tracker-item, .tracker-item *,
+.profile-panel, .tracker-panel, .notice, .pagination, footer {
+  min-width: 0;
+  max-width: 100%;
+}
+.job-card, .tracker-item { overflow-wrap: anywhere; }
+.job-card img, .job-card iframe, .job-card video { max-width: 100%; height: auto; }
+.card-bottom { flex-wrap: wrap; }
+.apply { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.translation-output { max-width: 100%; overflow-wrap: anywhere; }
+.tracker-item { grid-template-columns: minmax(0, 1fr) minmax(130px, 220px) auto; }
+.tracker-item > * { min-width: 0; }
+.pagination { display: flex; flex-wrap: wrap; justify-content: center; }
+footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: min(100%, 1920px);
+  margin: 0 auto;
+  padding: 22px 32px;
+  overflow-wrap: anywhere;
+}
+table { width: 100%; max-width: 100%; border-collapse: collapse; }
+pre, code { max-width: 100%; overflow-wrap: anywhere; white-space: pre-wrap; }
+[hidden] { display: none !important; }
 
-@media (max-width: 1024px) {
-  .app-layout { display: block !important; }
+@media (max-width: 1023.98px) {
+  .app-layout { display: block; width: 100%; max-width: 100%; }
   .app-sidebar {
-    width: min(310px, calc(100vw - 56px)) !important;
-    max-width: calc(100vw - 56px) !important;
-    padding: 18px 14px !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1201;
+    width: min(320px, calc(100% - 48px));
+    max-width: 320px;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding: 20px 14px;
+    border-right: 1px solid var(--line);
+    background: #0d1929;
+    box-shadow: 18px 0 48px #0008;
+    transform: translateX(-105%);
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform .22s ease, visibility .22s ease;
   }
+  body.sidebar-open .app-sidebar {
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+  .sidebar-close { display: inline-flex; align-items: center; justify-content: center; }
   .sidebar-nav { display: flex; flex-direction: column; gap: 5px; }
   .sidebar-link { min-height: 42px; padding: 10px 12px; font-size: 13px; }
   .sidebar-group { padding-top: 7px; }
   .sidebar-group-title { min-height: 40px; font-size: 11px; }
-  .filter-sidebar { margin-bottom: 18px; }
-  .discovery-layout { display: flex; flex-direction: column; gap: 12px; }
-  .filter-sidebar, .results-section { width: 100%; }
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: rgba(2, 8, 16, .68);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .22s ease, visibility .22s ease;
+  }
+  body.sidebar-open .sidebar-backdrop {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  .menu-toggle { display: inline-flex; }
+  .topbar {
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 64px;
+    padding: 10px 18px;
+    gap: 12px;
+  }
+  .topbar > .brand { flex: 1 1 auto; min-width: 0; }
+  .header-actions { flex: 0 1 auto; }
+  .shell { max-width: none; padding: 38px clamp(16px, 3vw, 28px) 36px; }
+  .discovery-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .filter-sidebar { position: static; width: 100%; }
+  .filter-sidebar .filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filter-sidebar .extra-filters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  body.sidebar-open { overflow: hidden; }
+  .tracker-item { grid-template-columns: minmax(0, 1fr) minmax(120px, 200px); }
+  .tracker-item > div:last-child { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+  footer { padding-inline: 18px; }
 }
 @media (max-width: 600px) {
-  .topbar {
-    display: flex;
-    width: 100%;
-    max-width: 100%;
-    padding: 9px 10px;
-    gap: 7px;
-  }
-  .topbar > .brand { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+  .topbar { gap: 8px; padding: 9px 10px; }
+  .brand { gap: 7px; font-size: 14px; white-space: nowrap; }
+  .brand-mark { width: 28px; height: 28px; flex: 0 0 28px; }
   .brand > span:last-child { overflow: hidden; text-overflow: ellipsis; }
-  .header-actions { min-width: 0; flex: 0 1 auto; flex-wrap: nowrap; }
+  .header-actions { gap: 5px; flex: 0 0 auto; }
+  .language-toggle { padding: 7px 8px; font-size: 11px; }
   .live-label { display: none; }
-  .shell { padding: 28px 12px 28px; }
-  .hero, .profile-panel, .discovery-layout, .tracker-panel, .notice { min-width: 0; }
-  .hero h1 { max-width: 100%; overflow-wrap: break-word; }
-  .searchbar { min-width: 0; }
-  .searchbar button { max-width: 38%; }
-  .profile-heading { min-width: 0; }
-  .privacy-note { max-width: 100%; overflow-wrap: anywhere; }
+  .shell { padding: 30px 12px; }
+  .hero h1 { max-width: 100%; font-size: clamp(32px, 9vw, 42px); letter-spacing: -1.4px; overflow-wrap: break-word; }
+  .subhead { font-size: 14px; line-height: 1.5; }
+  .searchbar { flex-wrap: wrap; gap: 7px; padding: 7px; }
+  .searchbar input { flex: 1 1 calc(100% - 45px); width: auto; }
+  .searchbar button { width: 100%; max-width: 100%; padding: 11px 9px; font-size: 12px; }
+  .filters, .extra-filters { width: 100%; max-width: 100%; }
   .filter-sidebar { padding: 14px; }
-  .filter-sidebar .filters, .filter-sidebar .extra-filters { display: grid; grid-template-columns: minmax(0, 1fr); }
-  .filter-sidebar .filters label, .filter-sidebar .sort-label { width: 100%; min-width: 0; }
-  .filter-sidebar select { min-width: 0; width: 100%; }
-  .section-heading { min-width: 0; }
-  .section-heading h2 { overflow-wrap: anywhere; }
-  .jobs-grid { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  .filter-sidebar .filters, .filter-sidebar .extra-filters { grid-template-columns: minmax(0, 1fr); }
+  .filter-sidebar .filters label, .filter-sidebar .sort-label { width: 100%; min-width: 0; flex-wrap: wrap; }
+  .filter-sidebar select { width: 100%; min-width: 0; max-width: 100%; }
+  .profile-panel, .tracker-panel { margin-top: 30px; padding: 14px; }
+  .profile-heading { align-items: flex-start; flex-wrap: wrap; }
+  .profile-heading h2 { font-size: 20px; }
+  .resume-actions, .card-bottom { flex-wrap: wrap; }
+  .results-section { margin-top: 38px; }
+  .section-heading { align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .section-heading h2 { font-size: 19px; overflow-wrap: anywhere; }
+  .jobs-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .job-card { width: 100%; padding: 14px; }
   .job-top, .card-bottom { flex-wrap: wrap; }
-  .apply { white-space: normal; max-width: 100%; }
-  .pagination { display: flex; width: 100%; min-width: 0; flex-wrap: wrap; justify-content: center; }
-  footer { display: flex; gap: 8px; padding: 16px 12px; }
+  .card-bottom { align-items: flex-start; gap: 9px; }
+  .apply { max-width: 100%; white-space: normal; }
+  .tracker-item { grid-template-columns: minmax(0, 1fr); }
+  .tracker-item > div:last-child { grid-column: auto; }
+  .pagination { width: 100%; gap: 5px; }
+  .page-button { min-width: 34px; min-height: 36px; padding: 7px 9px; }
+  footer { gap: 8px; padding: 16px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .app-sidebar, .sidebar-backdrop { transition: none; }
 }
