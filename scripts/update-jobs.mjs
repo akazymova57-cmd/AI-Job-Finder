@@ -82,7 +82,7 @@ async function fetchJobicy(source) {
 }
 
 function xmlText(item, tag) {
-  const match = item.match(new RegExp("<" + tag + "[^>]*>([\s\S]*?)</" + tag + ">", "i"));
+  const match = item.match(new RegExp("<" + tag + "[^>]*>([\\s\\S]*?)</" + tag + ">", "i"));
   if (!match) return "";
   return match[1].replace(/^<!\[CDATA\[([\s\S]*)\]\]>$/i, "$1")
     .replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&quot;/gi, '"')
