@@ -11,7 +11,11 @@ const seen = new Set();
 const issues = [];
 for (const [index, job] of snapshot.jobs.entries()) {
   const label = "jobs[" + index + "]";
-  if (!job || !String(job.title || "").trim()) issues.push(label + ": missing title");
+  if (!job || typeof job !== "object") {
+    issues.push(label + ": invalid job record");
+    continue;
+  }
+  if (!String(job.title || "").trim()) issues.push(label + ": missing title");
   if (!job || !String(job.company_name || "").trim()) issues.push(label + ": missing company");
   const publishedAt = Date.parse(job?.publication_date || job?.created_at || "");
   if (!Number.isFinite(publishedAt) || publishedAt > now || now - publishedAt > config.maxJobAgeDays * 86400000) {
