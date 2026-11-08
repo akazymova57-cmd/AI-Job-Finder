@@ -1,18 +1,13 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
+import { loadConfig } from "./load-config.mjs";
 
-const CONFIG_PATH = new URL("../config.js", import.meta.url);
-const API_URL = "https://remotive.com/api/remote-jobs?limit=1000";
-const MAX_AGE_DAYS = 30;
-const TRUSTED_HOSTS = new Set(["remotive.com", "www.remotive.com"]);
-const FRAUD_PATTERNS = [
-  /pay(?:ment)?\s+(?:a\s+)?(?:fee|for\s+training|to\s+apply)/i,
-  /upfront\s+(?:fee|payment|deposit)/i,
-  /заплатите\s+за\s+(?:трудоустройство|обучение|доступ)/i,
-  /оплат\w*\s+(?:трудоустройств|обучени|доступ)/i,
-  /send\s+(?:your\s+)?(?:passport|credit\s+card|bank\s+card)/i,
-  /пришлите\s+(?:скан\s+)?паспорт|данные\s+(?:банковской\s+)?карт/i,
-  /telegram\s+only|whatsapp\s+only|только\s+(?:в\s+)?(?:телеграм|telegram|whatsapp)/i
-];
+const CONFIG = await loadConfig();
+const SOURCE = CONFIG.sources.remotive;
+if (!SOURCE.enabled) throw new Error("Remotive source is disabled in config.js");
+const API_URL = `${SOURCE.apiUrl}?limit=1000`;
+const MAX_AGE_DAYS = CONFIG.maxJobAgeDays;
+const TRUSTED_HOSTS = new Set(SOURCE.allowedHosts);
+const FRAUD_PATTERNS = CONFIG.fraudPatterns;
 
 function clean(value) {
   return String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
