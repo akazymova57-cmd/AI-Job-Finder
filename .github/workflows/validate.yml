@@ -1,0 +1,36 @@
+name: Validate application
+
+on:
+  push:
+    branches:
+      - main
+      - fix/app-audit-nov-2026
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check config.js
+          node --check translations/en.js
+          node --check translations/ru.js
+          node --check scripts/update-jobs.mjs
+          node -e "const c = require('./config.js'); if (!c.sources.remotive.apiUrl || !c.fraudPatterns.length) process.exit(1)"
+      - name: Fetch live sources and validate vacancy snapshot
+        run: |
+          node scripts/update-jobs.mjs
+          node scripts/validate-jobs.mjs

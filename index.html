@@ -6,7 +6,10 @@
   <meta name="theme-color" content="#101827">
   <meta name="description" content="Поиск международных удалённых вакансий с фильтрами и прозрачной оценкой совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
-  <link rel="stylesheet" href="styles.css">\n  <script src="config.js"></script>\n  <script src="translations/ru.js"></script>\n  <script src="translations/en.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
+  <script src="translations/ru.js"></script>
+  <script src="translations/en.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -102,7 +105,7 @@
       </div>
       <div id="status" class="status" role="status" aria-live="polite">Загружаем вакансии…</div>
       <div id="jobs" class="jobs-grid"></div>
-      <p class="source-note">Вакансии предоставлены <a href="https://remotive.com/" target="_blank" rel="noopener noreferrer">Remotive</a>. Сохраняем ссылку на первоисточник каждой вакансии. Снимок данных обновляется GitHub Actions примерно каждые 6 часов; дополнительно доступен прямой запрос к API. Всегда проверяй требования, географические ограничения и статус вакансии на странице работодателя.</p>
+      <p class="source-note">Вакансии агрегируются из <a href="https://remoteok.com/" target="_blank" rel="noopener noreferrer">Remote OK</a> и <a href="https://jobicy.com/" target="_blank" rel="noopener noreferrer">Jobicy</a>. Для каждой записи сохраняется ссылка на первоисточник. Снимок обновляется GitHub Actions примерно каждые 6 часов. Проверяй требования, географические ограничения и статус вакансии на странице первоисточника.</p>
     </section>
     </div>
 
@@ -121,7 +124,7 @@
     </section>
   </main>
 
-  <footer><span>AI Job Finder</span><span>Первый MVP · Данные: Remotive</span></footer>
+  <footer><span>AI Job Finder</span><span>MVP · Источники: Remote OK и Jobicy</span></footer>
   <script src="app.js"></script>
 </body>
 </html>

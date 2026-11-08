@@ -1,9 +1,5 @@
-const API_URL = APP_CONFIG.sources.remotive.apiUrl;
-const CACHE_KEY = "aijf_remotive_cache_v1";
-const REQUESTS_KEY = "aijf_remotive_requests_v1";
+const CACHE_KEY = "aijf_multi_source_cache_v2";
 const CACHE_TTL = 6 * 60 * 60 * 1000;
-const REQUEST_WINDOW = 24 * 60 * 60 * 1000;
-const MAX_REQUESTS_PER_WINDOW = 4;
 const TRACKER_KEY = "aijf_saved_jobs_v1";
 
 const state = {
@@ -24,9 +20,23 @@ function applyLanguage() {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
-    const original = node.nodeValue.trim();
-    if (original && dictionary[original]) node.nodeValue = node.nodeValue.replace(original, dictionary[original]);
+    if (["SCRIPT", "STYLE", "TEXTAREA"].includes(node.parentElement?.tagName)) continue;
+    let translated = node.nodeValue;
+    Object.entries(dictionary)
+      .sort((a, b) => b[0].length - a[0].length)
+      .forEach(([source, target]) => {
+        if (source && translated.includes(source)) translated = translated.split(source).join(target);
+      });
+    node.nodeValue = translated;
   }
+
+  document.querySelectorAll("[placeholder], [aria-label], [title]").forEach((element) => {
+    ["placeholder", "aria-label", "title"].forEach((attribute) => {
+      const value = element.getAttribute(attribute);
+      if (value && dictionary[value]) element.setAttribute(attribute, dictionary[value]);
+    });
+  });
+
   document.documentElement.lang = currentLanguage;
   const toggle = $("language-toggle");
   if (toggle) toggle.textContent = currentLanguage === "ru" ? "RU / EN" : "EN / RU";
@@ -156,88 +166,39 @@ function readFreshCache() {
   return null;
 }
 
-function readRequestTimes() {
-  try {
-    const value = JSON.parse(localStorage.getItem(REQUESTS_KEY));
-    if (!Array.isArray(value)) return [];
-    return value.filter((time) => Number.isFinite(time) && Date.now() - time < REQUEST_WINDOW);
-  } catch (_) {
-    return [];
-  }
-}
-
-function recordApiRequest() {
-  const times = readRequestTimes();
-  times.push(Date.now());
-  try {
-    localStorage.setItem(REQUESTS_KEY, JSON.stringify(times));
-  } catch (_) {}
-  return times;
-}
-
-function nextRequestTime(times) {
-  if (times.length < MAX_REQUESTS_PER_WINDOW) return null;
-  return Math.min.apply(null, times) + REQUEST_WINDOW;
-}
-
 function formatTime(value) {
-  return new Date(value).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "время неизвестно" : date.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
 async function loadJobs(force) {
   if (state.loading) return;
-
-  const freshCache = readFreshCache();
-  const anyCache = readAnyCache();
-
-  if (!force && freshCache) {
-    state.jobs = freshCache.jobs;
-    state.sourceStatus = "Показан кэш Remotive от " + formatTime(freshCache.savedAt) + "; новый запрос не выполнялся.";
+  const cached = readAnyCache();
+  if (!force && cached && Date.now() - cached.savedAt < CACHE_TTL) {
+    state.jobs = cached.jobs;
+    state.sourceStatus = "Кэш списка от " + formatTime(cached.savedAt) + ".";
     render();
     return;
   }
-
-  if (!state.jobs.length && anyCache) state.jobs = anyCache.jobs;
-
-  const requestTimes = readRequestTimes();
-  if (requestTimes.length >= MAX_REQUESTS_PER_WINDOW) {
-    const availableAt = nextRequestTime(requestTimes);
-    state.sourceStatus = "Лимит Remotive: не более четырёх запросов за 24 часа с этого браузера. Следующее обновление возможно после " + formatTime(availableAt) + ".";
-    render();
-    return;
-  }
-
+  if (!state.jobs.length && cached) state.jobs = cached.jobs;
   state.loading = true;
   $("refresh").disabled = true;
-  $("status").textContent = "Загружаем вакансии из Remotive…";
-  recordApiRequest();
-
+  $("status").textContent = "Загружаем общий список вакансий…";
   try {
-    let data = null;
-    const snapshotResponse = await fetch("./data/jobs.json", { cache: "no-store" });
-    if (snapshotResponse.ok) {
-      const snapshot = await snapshotResponse.json();
-      if (snapshot && Array.isArray(snapshot.jobs) && snapshot.jobs.length) data = snapshot;
-    }
-    if (!data) {
-      const response = await fetch(API_URL + "?limit=100", { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error("HTTP " + response.status);
-      data = await response.json();
-    }
-    if (!data || !Array.isArray(data.jobs)) throw new Error("Источник вернул неожиданный формат данных");
-
-    state.jobs = data.jobs.filter((job) => isRecentJob(job) && passesSafetyChecks(job));
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), jobs: state.jobs }));
-    } catch (_) {}
-
-    state.sourceStatus = "Источник: Remotive. Последнее получение: " + formatTime(Date.now()) + ". Локальный лимит — четыре запроса за 24 часа.";
+    const response = await fetch("./data/jobs.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status + " при загрузке снимка вакансий");
+    const snapshot = await response.json();
+    if (!snapshot || !Array.isArray(snapshot.jobs)) throw new Error("Файл вакансий имеет неверный формат");
+    state.jobs = snapshot.jobs.filter(job => isRecentJob(job) && passesSafetyChecks(job));
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), jobs: state.jobs })); } catch (_) {}
+    const statuses = Array.isArray(snapshot.sourceStatuses) ? snapshot.sourceStatuses : [];
+    const details = statuses.map(source => source.label + ": " + (source.status === "success" ? source.accepted + " вакансий" : "ошибка обновления"));
+    state.sourceStatus = "Снимок от " + formatTime(snapshot.updatedAt) + ". " + details.join(" · ");
+    if (statuses.some(source => source.status !== "success")) state.sourceStatus += " Часть источников использует ранее сохранённые данные.";
   } catch (error) {
-    if (state.jobs.length) {
-      state.sourceStatus = "Не удалось обновить Remotive (" + error.message + "). Показан последний сохранённый список.";
-    } else {
-      state.sourceStatus = "Не удалось загрузить вакансии (" + error.message + "). Проверь подключение и попробуй позже.";
-    }
+    state.sourceStatus = state.jobs.length
+      ? "Не удалось обновить общий список (" + error.message + "). Показан последний сохранённый список."
+      : "Не удалось загрузить вакансии (" + error.message + "). Попробуй позже.";
   } finally {
     state.loading = false;
     $("refresh").disabled = false;
@@ -306,11 +267,11 @@ function jobDate(job) {
   return Number.isFinite(value) ? value : 0;
 }
 
-function safeJobUrl(value) {
+function safeJobUrl(value, sourceId) {
   try {
     const url = new URL(value);
-    const source = APP_CONFIG.sources.remotive;
-    const hostAllowed = source.allowedHosts.some((host) => url.hostname === host || url.hostname.endsWith("." + host));
+    const candidates = sourceId ? (APP_CONFIG.sources[sourceId] ? [APP_CONFIG.sources[sourceId]] : []) : Object.values(APP_CONFIG.sources);
+    const hostAllowed = candidates.some(source => source.allowedHosts.some(host => url.hostname === host || url.hostname.endsWith("." + host)));
     return url.protocol === "https:" && hostAllowed ? url.href : "";
   } catch (_) {
     return "";
@@ -324,7 +285,7 @@ function isRecentJob(job) {
 }
 
 function passesSafetyChecks(job) {
-  if (!job || !String(job.company_name || "").trim() || !safeJobUrl(job.url)) return false;
+  if (!job || !String(job.company_name || "").trim() || !safeJobUrl(job.url, job.source_id)) return false;
   const text = cleanText([job.title, job.description, job.salary].join(" "));
   return !APP_CONFIG.fraudPatterns.some((pattern) => pattern.test(text));
 }
@@ -402,7 +363,8 @@ function render() {
         job.candidate_required_location || "Remote",
         job.salary || "",
         job.job_type ? String(job.job_type).replace(/_/g, " ") : "",
-        jobDate(job) ? new Date(jobDate(job)).toLocaleDateString("ru-RU") : ""
+        jobDate(job) ? new Date(jobDate(job)).toLocaleDateString("ru-RU") : "",
+        job.source_name || ""
       ].filter(Boolean);
       meta.textContent = metaParts.join(" · ");
 
@@ -509,15 +471,15 @@ function render() {
 
       const link = document.createElement("a");
       link.className = "apply";
-      link.textContent = "Открыть первоисточник ↗";
-      link.href = safeJobUrl(job.url);
+      link.textContent = "Открыть на " + (job.source_name || "источнике") + " ↗";
+      link.href = safeJobUrl(job.url, job.source_id);
       link.target = "_blank";
       link.rel = "noopener noreferrer";
 
       const favorite = document.createElement("button");
       favorite.type = "button";
       favorite.className = "favorite-button";
-      favorite.dataset.favoriteUrl = safeJobUrl(job.url);
+      favorite.dataset.favoriteUrl = safeJobUrl(job.url, job.source_id);
       const isSaved = state.savedJobs.some((item) => item.url === favorite.dataset.favoriteUrl);
       favorite.textContent = isSaved ? "★ В избранном" : "☆ В избранное";
       favorite.classList.toggle("is-saved", isSaved);
@@ -525,7 +487,7 @@ function render() {
       const report = document.createElement("a");
       report.className = "report-link";
       report.textContent = "Пожаловаться";
-      report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url) + "\\nКомпания: " + (job.company_name || "не указана") + "\\nОпишите проблему:");
+      report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url, job.source_id) + "\nКомпания: " + (job.company_name || "не указана") + "\nОпишите проблему:");
       report.target = "_blank";
       report.rel = "noopener noreferrer";
       bottom.append(relevance, link, favorite, report);
@@ -534,7 +496,14 @@ function render() {
     });
   }
 
-  const countText = "Показано вакансий: " + filtered.length + " из " + state.jobs.length + ".";
+  const sourceCounts = filtered.reduce((counts, job) => {
+    const source = job.source_name || "Источник не указан";
+    counts[source] = (counts[source] || 0) + 1;
+    return counts;
+  }, {});
+  const sourceSummary = Object.entries(sourceCounts).map(([source, count]) => source + ": " + count).join(" · ");
+  const countText = "Показано вакансий: " + filtered.length + " из " + state.jobs.length + "." + (sourceSummary ? " По источникам: " + sourceSummary + "." : "");
+  $("status").textContent = (state.sourceStatus ? state.sourceStatus + " " : "") + countText;
 
   container.querySelectorAll("[data-favorite-url]").forEach((button) => {
     const saved = state.savedJobs.some((item) => item.url === button.dataset.favoriteUrl);
@@ -542,6 +511,7 @@ function render() {
     button.classList.toggle("is-saved", saved);
   });
   renderTracker();
+  applyLanguage();
 }
 
 
@@ -611,7 +581,7 @@ function renderTracker() {
     actions.style.gap = "8px";
     actions.style.flexWrap = "wrap";
     const link = document.createElement("a");
-    link.href = safeJobUrl(job.url);
+    link.href = safeJobUrl(job.url, job.source_id);
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.textContent = "Первоисточник ↗";
@@ -643,7 +613,9 @@ $("jobs").addEventListener("click", (event) => {
       url,
       title: source.title || "Вакансия без названия",
       company: source.company_name || "Компания не указана",
-      status: "saved"
+      status: "saved",
+      source_id: source.source_id,
+      source_name: source.source_name
     });
   }
   persistSavedJobs();
