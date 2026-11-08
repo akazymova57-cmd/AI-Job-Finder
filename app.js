@@ -213,14 +213,18 @@ async function loadJobs(force) {
   recordApiRequest();
 
   try {
-    const response = await fetch(API_URL + "?limit=100", {
-      headers: { Accept: "application/json" }
-    });
-
-    if (!response.ok) throw new Error("HTTP " + response.status);
-
-    const data = await response.json();
-    if (!data || !Array.isArray(data.jobs)) throw new Error("API вернул неожиданный формат данных");
+    let data = null;
+    const snapshotResponse = await fetch("./data/jobs.json", { cache: "no-store" });
+    if (snapshotResponse.ok) {
+      const snapshot = await snapshotResponse.json();
+      if (snapshot && Array.isArray(snapshot.jobs) && snapshot.jobs.length) data = snapshot;
+    }
+    if (!data) {
+      const response = await fetch(API_URL + "?limit=100", { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      data = await response.json();
+    }
+    if (!data || !Array.isArray(data.jobs)) throw new Error("Источник вернул неожиданный формат данных");
 
     state.jobs = data.jobs.filter((job) => isRecentJob(job) && passesSafetyChecks(job));
     try {
