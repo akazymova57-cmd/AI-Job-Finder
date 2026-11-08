@@ -1,6 +1,5 @@
 window.APP_TRANSLATIONS = window.APP_TRANSLATIONS || {};
 window.APP_TRANSLATIONS.ru = {
-  ru: {
     "Find jobs": "Найти вакансии",
     "Search jobs": "Поиск вакансий",
     "Remote jobs without borders": "Удалённая работа без границ",
@@ -14,5 +13,4 @@ window.APP_TRANSLATIONS.ru = {
     "Translate to Russian": "Перевести на русский",
     "Report vacancy": "Пожаловаться на вакансию",
     "Apply": "Перейти к вакансии"
-  }
 };
