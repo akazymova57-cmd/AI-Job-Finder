@@ -24,9 +24,16 @@ function applyLanguage() {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
+    if (["SCRIPT", "STYLE", "TEXTAREA"].includes(node.parentElement?.tagName)) continue;
     const original = node.nodeValue.trim();
     if (original && dictionary[original]) node.nodeValue = node.nodeValue.replace(original, dictionary[original]);
   }
+  document.querySelectorAll("[placeholder], [aria-label], [title]").forEach((element) => {
+    ["placeholder", "aria-label", "title"].forEach((attribute) => {
+      const value = element.getAttribute(attribute);
+      if (value && dictionary[value]) element.setAttribute(attribute, dictionary[value]);
+    });
+  });
   document.documentElement.lang = currentLanguage;
   const toggle = $("language-toggle");
   if (toggle) toggle.textContent = currentLanguage === "ru" ? "RU / EN" : "EN / RU";
@@ -542,6 +549,7 @@ function render() {
     button.classList.toggle("is-saved", saved);
   });
   renderTracker();
+  applyLanguage();
 }
 
 
