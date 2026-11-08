@@ -487,7 +487,7 @@ function render() {
       const report = document.createElement("a");
       report.className = "report-link";
       report.textContent = "Пожаловаться";
-      report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url) + "\nКомпания: " + (job.company_name || "не указана") + "\nОпишите проблему:");
+      report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url, job.source_id) + "\nКомпания: " + (job.company_name || "не указана") + "\nОпишите проблему:");
       report.target = "_blank";
       report.rel = "noopener noreferrer";
       bottom.append(relevance, link, favorite, report);
