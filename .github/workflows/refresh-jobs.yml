@@ -2,6 +2,11 @@ name: Refresh job listings
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - data/jobs.json
   schedule:
     - cron: "17 */6 * * *"
 
