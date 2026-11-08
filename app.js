@@ -25,10 +25,13 @@ function applyLanguage() {
   let node;
   while ((node = walker.nextNode())) {
     if (["SCRIPT", "STYLE", "TEXTAREA"].includes(node.parentElement?.tagName)) continue;
-    const original = node.nodeValue.trim();
-    if (original && dictionary[original]) {
-      node.nodeValue = node.nodeValue.replace(original, dictionary[original]);
-    }
+    let translated = node.nodeValue;
+    Object.entries(dictionary)
+      .sort((a, b) => b[0].length - a[0].length)
+      .forEach(([source, target]) => {
+        if (source && translated.includes(source)) translated = translated.split(source).join(target);
+      });
+    node.nodeValue = translated;
   }
 
   document.querySelectorAll("[placeholder], [aria-label], [title]").forEach((element) => {
