@@ -415,6 +415,36 @@ function render() {
       }
       card.append(badges);
 
+      const translationButton = document.createElement("button");
+      translationButton.type = "button";
+      translationButton.className = "translate-button";
+      translationButton.textContent = currentLanguage === "ru" ? "Перевести на русский" : "Translate to Russian";
+      const translationOutput = document.createElement("div");
+      translationOutput.className = "translation-output";
+      translationButton.addEventListener("click", async () => {
+        translationButton.disabled = true;
+        translationButton.textContent = currentLanguage === "ru" ? "Переводим…" : "Translating…";
+        try {
+          const sourceText = cleanText(job.description || "");
+          if (!sourceText) throw new Error("Описание вакансии отсутствует");
+          const response = await fetch("https://api.mymemory.translated.net/get?q=" + encodeURIComponent(sourceText.slice(0, 4500)) + "&langpair=en|ru");
+          if (!response.ok) throw new Error("Сервис перевода временно недоступен");
+          const result = await response.json();
+          const translated = result && result.responseData && result.responseData.translatedText;
+          if (!translated) throw new Error("Перевод не получен");
+          translationOutput.textContent = translated;
+          translationOutput.hidden = false;
+          translationButton.textContent = "Скрыть перевод";
+        } catch (error) {
+          translationOutput.textContent = "Не удалось перевести: " + error.message;
+          translationOutput.hidden = false;
+          translationButton.textContent = "Повторить перевод";
+        } finally {
+          translationButton.disabled = false;
+        }
+      });
+      card.append(translationButton, translationOutput);
+
       if (state.resumeSkills.length) {
         const match = getResumeMatch(job);
         const matchDetails = document.createElement("div");
