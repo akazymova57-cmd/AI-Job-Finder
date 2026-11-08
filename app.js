@@ -24,6 +24,7 @@ function applyLanguage() {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
+    if (["SCRIPT", "STYLE", "TEXTAREA"].includes(node.parentElement?.tagName)) continue;
     const original = node.nodeValue.trim();
     if (original && dictionary[original]) {
       node.nodeValue = node.nodeValue.replace(original, dictionary[original]);
