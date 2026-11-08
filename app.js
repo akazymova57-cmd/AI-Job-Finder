@@ -81,7 +81,19 @@ const SKILL_CATALOG = [
 
 const entryPattern = /junior|entry[\s-]?level|no experience|without experience|graduate|trainee|intern(?:ship)?|associate|assistant|coordinator|customer support|support agent|data annotat|virtual assistant|без опыта|начальн\w*\s+уровн|стаж[её]р|помощник/i;
 const internPattern = /intern(?:ship)?|trainee|стаж[её]ровк|стаж[её]р/i;
+
 const seniorPattern = /senior|lead|principal|staff engineer|head of|director|высококвалифицированн|руководител[ья]/i;
+
+function hasMandatoryExperienceRequirement(job) {
+  const text = getJobText(job);
+  if (seniorPattern.test(text)) return true;
+
+  const preferredOnly = /preferred|preferably|nice to have|желательно|желателен|будет плюсом/i.test(text);
+  const explicitYears = /(?:at least|minimum(?: of)?|more than|over)\s*\d+\s*(?:years?|yrs?)|\b\d+\s*\+\s*(?:years?|yrs?)|\b\d+\s*(?:-|–|to)\s*\d+\s*(?:years?|yrs?)\b|\b\d+\s*(?:years?|yrs?)\s+(?:of )?experience|опыт\s+от\s+\d+\s+лет|не менее\s+\d+\s+лет/i.test(text);
+  if (explicitYears && !preferredOnly) return true;
+
+  return /(?:must have|required|requirement is|обязателен|обязательно|требуется)\s+(?:at least\s+)?(?:prior\s+)?experience|experience\s+(?:is\s+)?(?:required|mandatory)|опыт работы\s+(?:обязателен|обязательно)|требуется опыт работы/i.test(text);
+}
 
 function cleanText(value) {
   return String(value || "")
@@ -110,7 +122,7 @@ function containsTerm(text, term) {
 
   const escaped = normalizedTerm
     .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\s+/g, "\\s+");
+    .replace(/\s+/g, "\s+");
   return new RegExp("(^|[^a-z0-9])" + escaped + "(?=$|[^a-z0-9])", "i").test(text);
 }
 
@@ -215,8 +227,27 @@ async function loadJobs(force) {
 function locationMatches(job, filter) {
   if (filter === "any") return true;
 
-  const value = String(job.candidate_required_location || "").toLowerCase();
-  if (filter === "worldwide") return /worldwide|anywhere|global|everywhere|🌍/.test(value);
+  const value = String(job.candidate_required_location || "")
+    .toLowerCase()
+    .replace(/[–—]/g, "-")
+    .trim();
+
+  if (filter === "worldwide") {
+    // Worldwide means unrestricted eligibility, not a list of selected countries.
+    // Normalize harmless formatting, then require the entire location field to
+    // express global eligibility. Any appended country/region restriction fails.
+    if (!value || /eligibility not specified|not specified|unspecified|unknown|remote only/i.test(value)) return false;
+
+    const scope = value
+      .replace(/[()[\]{}]/g, " ")
+      .replace(/[|,:;/]+/g, " ")
+      .replace(/[-–—]+/g, " ")
+      .replace(/\bremote(?:\s+work)?\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return /^(?:🌍\s*)?(?:worldwide|anywhere(?: in the world)?|work from anywhere(?: in the world)?|global(?:ly)?|everywhere|all countries|any country|no (?:geo(?:graphic)?|location) restrictions)(?:\s+(?:remote|only|eligible|available|location|based|work|from|the|world))*[.!]?$/i.test(scope);
+  }
   if (filter === "europe") return /europe|emea|european|uk|united kingdom|germany|france|spain|poland|netherlands|european union/i.test(value);
   if (filter === "americas") return /americ|united states|usa|canada|latin/i.test(value);
   if (filter === "asia") return /asia|india|singapore|japan|china|philippines|indonesia/i.test(value);
@@ -250,10 +281,83 @@ function categoryMatches(job, category) {
     design: /design|designer|figma|ux\b|ui\b|graphic|visual|дизайн|дизайнер/i,
     marketing: /marketing|seo|sem\b|growth|social media|smm|performance|маркетинг|продвижен/i,
     support: /customer support|customer service|support engineer|technical support|support specialist|support agent|help desk|service desk|customer success|поддержк|служба поддержки|специалист поддержки|инженер поддержки/i,
+    it: /software developer|software engineer|web developer|frontend|front-end|backend|back-end|full[- ]stack|programmer|engineer|engineering|devops|data analyst|quality assurance|\bqa\b|sql developer|python developer|javascript|разработчик|программист|инженер|тестировщик|аналитик данных/i,
+    design: /design|designer|figma|ux\b|ui\b|graphic|visual|дизайн|дизайнер/i,
+    marketing: /marketing|seo|sem\b|growth|social media|smm|performance|маркетинг|продвижен/i,
+    support: /customer support|customer service|customer care|client support|support engineer|technical support|support specialist|support agent|help ?desk|service desk|customer success|поддержк|служба поддержки|специалист поддержки|инженер поддержки/i,
     writing: /copywriter|copywriting|content writer|technical writer|editor|writing|копирайт|редактор|автор текст/i,
     admin: /administrative|administrator|virtual assistant|operations|coordinator|data entry|office manager|администратор|ассистент|ввод данных/i
   };
+  if (category === "it" && patterns.support.test(text)) return false;
   return Boolean(patterns[category] && patterns[category].test(text));
+}
+
+
+function isEntryLevelJob(job) {
+  const title = normalizeText(job.title || "");
+  const description = normalizeText(job.description || "");
+  if (/\b(junior|entry.level|intern|trainee|graduate)\b|стаж[её]р|младш/i.test(title)) return true;
+  return /no experience (?:required|needed)|no prior experience|without experience|entry.level|0\s*[-–]\s*1 years?|training (?:will be )?provided|без опыта|опыт не требуется/i.test(description);
+}
+
+function getJobDifficulty(job) {
+  const text = getJobText(job);
+  const title = normalizeText(job.title || "");
+  const seniorTitle = /\b(senior|lead|principal|staff|architect|director|head of)\b|руководител|архитектор/i.test(title);
+  const yearsMatch = text.match(/\b(5|6|7|8|9|10)\s*\+?\s*(?:years?|yrs?)\b|(?:5|6|7|8|9|10)\s*\+?\s*(?:лет|года)/i);
+  const complexSignals = /advanced|expert|deep knowledge|hands-on experience|multiple programming languages|machine learning|машинное обучение|глубокие знания/i.test(text);
+  const skillCount = extractSkills(text).length;
+  let points = 0;
+  if (seniorTitle || yearsMatch) points += 2;
+  if (complexSignals) points += 1;
+  if (skillCount >= 8) points += 2;
+  else if (skillCount >= 4) points += 1;
+  if (/bachelor|master|phd|degree required|certification required|высшее образование обязательно/i.test(text)) points += 1;
+  if (isEntryLevelJob(job) && !seniorTitle) points -= 2;
+  const level = points <= 0 ? "easy" : points <= 2 ? "medium" : "hard";
+  return { level, label: level === "easy" ? "Лёгкая" : level === "medium" ? "Средняя" : "Высокая", bars: level === "easy" ? 2 : level === "medium" ? 3 : 5 };
+}
+
+function getEnglishRequirement(job) {
+  const text = cleanText(job.description || "");
+  const explicit = text.match(/(?:english|английск\w*)[^.\n]{0,45}\b(A1|A2|B1|B2|C1|C2)\b|\b(A1|A2|B1|B2|C1|C2)\b[^.\n]{0,35}(?:english|английск\w*)/i);
+  if (explicit) return (explicit[1] || explicit[2]).toUpperCase();
+  if (/native[- ]level english|fluent in english|английский свободно|свободное владение английским/i.test(text)) return "C1+";
+  if (/conversational english|intermediate english|английский разговорный|английский средний/i.test(text)) return "B1–B2";
+  if (/basic english|английский базовый|начальный английский/i.test(text)) return "A1–A2";
+  return "Не указан";
+}
+
+function getExperienceRequirement(job) {
+  const text = getJobText(job);
+  if (/no experience|without experience|entry.level|без опыта|опыт не требуется/i.test(text)) return "Без опыта";
+  const years = text.match(/(?:at least |minimum |минимум )?(\d+)\s*\+?\s*(?:years?|yrs?|лет|года|год)/i);
+  if (years) return Number(years[1]) + "+ лет";
+  if (/\b(senior|lead|principal|staff|head of|director)\b|руководител/i.test(normalizeText(job.title || ""))) return "Senior / Lead";
+  if (isEntryLevelJob(job)) return "Начальный";
+  return "Не указан";
+}
+
+function getFreshnessLabel(job) {
+  const published = jobDate(job);
+  if (!published) return "Дата не указана";
+  const days = Math.max(0, Math.floor((Date.now() - published) / 86400000));
+  if (days === 0) return "Сегодня";
+  if (days === 1) return "Вчера";
+  return days + " дн. назад";
+}
+
+function createInsight(label, value, className) {
+  const item = document.createElement("div");
+  item.className = "insight-item" + (className ? " " + className : "");
+  const caption = document.createElement("span");
+  caption.className = "insight-label";
+  caption.textContent = label;
+  const content = document.createElement("strong");
+  content.className = "insight-value";
+  content.textContent = value;
+  item.append(caption, content);
+  return item;
 }
 
 function getResumeMatch(job) {
@@ -381,6 +485,7 @@ function render() {
   const level = $("level").value;
   const type = $("type").value;
   const salaryOnly = $("salary-only").checked;
+  const noExperienceOnly = $("no-experience-only").checked;
 
   const filtered = state.jobs.filter((job) => {
     if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
@@ -390,6 +495,7 @@ function render() {
     if (level === "entry" && !entryPattern.test(text)) return false;
     if (level === "intern" && !internPattern.test(text)) return false;
     if (level === "experienced" && !seniorPattern.test(text)) return false;
+    if (noExperienceOnly && hasMandatoryExperienceRequirement(job)) return false;
     if (type !== "all" && job.job_type !== type) return false;
     if (salaryOnly && !job.salary) return false;
     if (state.quickCategory && !categoryMatches(job, state.quickCategory)) return false;
@@ -411,6 +517,27 @@ function render() {
       const salaryDifference = Number(Boolean(b.salary)) - Number(Boolean(a.salary));
       if (salaryDifference) return salaryDifference;
       return jobDate(b) - jobDate(a);
+    }
+
+    // Experience-focused sorting promotes matching roles without hiding other jobs.
+    if (sortMode === "no-experience") {
+      const aNoExperience = /no experience|without experience|no prior experience|0\s*[-–]?\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(a));
+      const bNoExperience = /no experience|without experience|no prior experience|0\s*[-–]?\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(b));
+      const difference = Number(bNoExperience) - Number(aNoExperience);
+      if (difference) return difference;
+    }
+    if (sortMode === "entry") {
+      const difference = Number(isEntryLevelJob(b)) - Number(isEntryLevelJob(a));
+      if (difference) return difference;
+    }
+    if (sortMode === "intern") {
+      const difference = Number(internPattern.test(getJobText(b))) - Number(internPattern.test(getJobText(a)));
+      if (difference) return difference;
+    }
+    if (sortMode === "easy") {
+      const rank = { easy: 0, medium: 1, hard: 2 };
+      const difference = rank[getJobDifficulty(a).level] - rank[getJobDifficulty(b).level];
+      if (difference) return difference;
     }
 
     if (state.resumeSkills.length) {
@@ -474,27 +601,52 @@ function render() {
 
       const badges = document.createElement("div");
       badges.className = "badges";
-
-      const isEntry = entryPattern.test(getJobText(job));
+      const globalEligibility = locationMatches(job, "worldwide");
+      const geoBadge = document.createElement("span");
+      geoBadge.className = "badge " + (globalEligibility ? "entry" : "warning");
+      geoBadge.textContent = globalEligibility ? "🌍 Worldwide" : (job.candidate_required_location ? "Ограничения: " + job.candidate_required_location : "География не указана");
+      badges.append(geoBadge);
+      const isEntry = isEntryLevelJob(job);
       const levelBadge = document.createElement("span");
       levelBadge.className = "badge " + (isEntry ? "entry" : "warning");
-      levelBadge.textContent = isEntry ? "Есть признаки начального уровня" : "Уровень не подтверждён";
+      levelBadge.textContent = isEntry ? "Начальный уровень" : (/\b(senior|lead|principal|staff|head of|director)\b|руководител/i.test(normalizeText(job.title || "")) ? "Senior / Lead" : "Опыт не подтверждён");
       badges.append(levelBadge);
-
-      (Array.isArray(job.tags) ? job.tags : []).slice(0, 3).forEach((tag) => {
+      (Array.isArray(job.tags) ? job.tags : []).slice(0, 2).forEach((tag) => {
         const badge = document.createElement("span");
         badge.className = "badge";
         badge.textContent = tag;
         badges.append(badge);
       });
+      card.append(badges);
+
+      const difficulty = getJobDifficulty(job);
+      const insights = document.createElement("div");
+      insights.className = "job-insights";
+      const difficultyItem = createInsight("Сложность · оценка", difficulty.label, "difficulty-" + difficulty.level);
+      const difficultyTrack = document.createElement("div");
+      difficultyTrack.className = "difficulty-track " + difficulty.level;
+      for (let index = 0; index < 5; index += 1) {
+        const segment = document.createElement("span");
+        if (index < difficulty.bars) segment.classList.add("filled");
+        difficultyTrack.append(segment);
+      }
+      difficultyItem.append(difficultyTrack);
+      insights.append(difficultyItem);
+      insights.append(createInsight("Английский · требование", getEnglishRequirement(job)));
+      insights.append(createInsight("Опыт · требование", getExperienceRequirement(job)));
+      insights.append(createInsight("Опубликована", getFreshnessLabel(job)));
+      card.append(insights);
 
       if (job.salary) {
-        const salaryBadge = document.createElement("span");
-        salaryBadge.className = "badge";
-        salaryBadge.textContent = "Зарплата указана";
-        badges.append(salaryBadge);
+        const salaryBox = document.createElement("div");
+        salaryBox.className = "salary-highlight";
+        const salaryValue = document.createElement("strong");
+        salaryValue.textContent = job.salary;
+        const salaryLabel = document.createElement("span");
+        salaryLabel.textContent = "Зарплата из объявления";
+        salaryBox.append(salaryValue, salaryLabel);
+        card.append(salaryBox);
       }
-      card.append(badges);
 
       const translationButton = document.createElement("button");
       translationButton.type = "button";
@@ -530,27 +682,32 @@ function render() {
         const match = getResumeMatch(job);
         const matchDetails = document.createElement("div");
         matchDetails.className = "match-details";
-
         if (!match || match.score === null) {
           matchDetails.textContent = "Совпадение навыков не рассчитано: в описании вакансии не распознаны навыки из текущего словаря.";
         } else {
-          const matchLabel = document.createElement("div");
+          const row = document.createElement("div");
+          row.className = "match-score-row";
+          const matchLabel = document.createElement("span");
           matchLabel.className = "match";
-          matchLabel.textContent = "Совпадение распознанных навыков: " + match.score + "% (" + match.matched.length + " из " + match.total + ")";
-
+          matchLabel.textContent = "Совпадение навыков · " + match.score + "%";
+          const matchCount = document.createElement("span");
+          matchCount.textContent = match.matched.length + " из " + match.total;
+          row.append(matchLabel, matchCount);
+          const track = document.createElement("div");
+          track.className = "match-track";
+          const fill = document.createElement("span");
+          fill.className = "filled";
+          fill.style.flex = String(Math.max(1, match.score)) + " 1 0";
+          const remainder = document.createElement("span");
+          remainder.style.flex = String(Math.max(1, 100 - match.score)) + " 1 0";
+          track.append(fill, remainder);
           const matchedLine = document.createElement("div");
           matchedLine.className = "match-details";
-          const matchedStrong = document.createElement("strong");
-          matchedStrong.textContent = "Совпало: ";
-          matchedLine.append(matchedStrong, document.createTextNode(match.matched.length ? match.matched.join(", ") : "пока нет"));
-
+          matchedLine.textContent = "Совпало: " + (match.matched.length ? match.matched.join(", ") : "пока нет");
           const missingLine = document.createElement("div");
           missingLine.className = "match-details";
-          const missingStrong = document.createElement("strong");
-          missingStrong.textContent = "Не найдено в резюме: ";
-          missingLine.append(missingStrong, document.createTextNode(match.missing.length ? match.missing.join(", ") : "все распознанные навыки вакансии есть в резюме"));
-
-          matchDetails.append(matchLabel, matchedLine, missingLine);
+          missingLine.textContent = "Не найдено: " + (match.missing.length ? match.missing.join(", ") : "все распознанные навыки найдены");
+          matchDetails.append(row, track, matchedLine, missingLine);
         }
         card.append(matchDetails);
       } else {
@@ -753,7 +910,7 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
   if (item.dataset.view === "all") {
     $("query").value = "";
     state.query = "";
-    $("location").value = "any";
+    $("location").value = "worldwide";
     $("level").value = "all";
     $("type").value = "all";
     $("sort").value = "match";
@@ -840,7 +997,7 @@ $("search-form").addEventListener("submit", (event) => {
   render();
 });
 
-["location", "level", "type", "sort", "salary-only"].forEach((id) => {
+["location", "level", "type", "sort", "salary-only", "no-experience-only"].forEach((id) => {
   $(id).addEventListener("change", () => {
     state.currentPage = 1;
     render();

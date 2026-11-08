@@ -3,168 +3,162 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101827">
-  <meta name="description" content="Поиск международных удалённых вакансий с фильтрами и прозрачной оценкой совпадения навыков.">
+  <meta name="theme-color" content="#14243a">
+  <!-- Build refresh: experience sorting 2026-11-09 -->
+  <meta name="description" content="AI Job Finder — поиск международных удалённых вакансий с оценкой сложности, языка и совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
   <link rel="stylesheet" href="styles.css?v=20261108-layout1">
+  <link rel="stylesheet" href="styles.css?v=20261109-premium3">
   <script src="config.js"></script>
   <script src="translations/ru.js"></script>
   <script src="translations/en.js"></script>
 </head>
 <body>
   <header class="topbar">
-    <button id="sidebar-open" class="menu-toggle" type="button" aria-label="Открыть меню" aria-controls="app-sidebar" aria-expanded="false"><span></span><span></span><span></span></button>
-    <a class="brand" href="./"><span class="brand-mark">J</span><span>AI Job Finder</span></a>
-    <div class="header-actions"><button id="language-toggle" class="language-toggle" type="button" aria-label="Switch language">RU / EN</button><span class="live-label"><i></i> MVP · Beta</span></div>
+    <a class="brand" href="./"><span class="brand-mark">AI</span><span>AI Job Finder</span></a>
+    <button id="sidebar-open" class="menu-toggle" type="button" aria-label="Открыть меню" aria-controls="sidebar-nav" aria-expanded="false"><span></span><span></span><span></span></button>
+    <div class="header-actions"><button id="language-toggle" class="language-toggle" type="button" aria-label="Switch language">RU / EN</button><span class="live-label"><i></i> LIVE JOB FEED</span></div>
   </header>
+  <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Закрыть меню"></button>
 
   <div class="app-layout">
-    <aside id="app-sidebar" class="app-sidebar" aria-label="Главная навигация">
-      <div class="sidebar-heading">
-        <span class="sidebar-title">Навигация</span>
-        <button id="sidebar-close" class="sidebar-close" type="button" aria-label="Закрыть меню">×</button>
-      </div>
-      <nav id="sidebar-nav" class="sidebar-nav">
-        <button class="sidebar-link is-active" type="button" data-view="all" aria-current="page"><span class="sidebar-icon">⌂</span>Все вакансии</button>
-        <button class="sidebar-link" type="button" data-view="today"><span class="sidebar-icon">◷</span>Новые за сегодня</button>
-        <details class="sidebar-group">
-          <summary class="sidebar-group-title">Категории</summary>
-          <button class="sidebar-link" type="button" data-category="it">IT и разработка</button>
-          <button class="sidebar-link" type="button" data-category="design">Дизайн</button>
-          <button class="sidebar-link" type="button" data-category="marketing">Маркетинг</button>
-          <button class="sidebar-link" type="button" data-category="support">Поддержка клиентов</button>
-          <button class="sidebar-link" type="button" data-category="writing">Копирайтинг</button>
-          <button class="sidebar-link" type="button" data-category="admin">Администрирование</button>
-        </details>
-        <details class="sidebar-group">
-          <summary class="sidebar-group-title">Тип занятости</summary>
-          <button class="sidebar-link" type="button" data-employment="full_time">Полная занятость</button>
-          <button class="sidebar-link" type="button" data-employment="part_time">Частичная занятость</button>
-          <button class="sidebar-link" type="button" data-employment="contract">Контракт</button>
-          <button class="sidebar-link" type="button" data-employment="internship">Стажировка</button>
-        </details>
-        <details class="sidebar-group">
-          <summary class="sidebar-group-title">Источники</summary>
-          <button class="sidebar-link" type="button" data-source="jobicy">Jobicy</button>
-          <button class="sidebar-link" type="button" data-source="remoteok">Remote OK</button>
-        </details>
-        <button class="sidebar-link" type="button" data-view="favorites"><span class="sidebar-icon">☆</span>Избранное</button>
-        <a class="sidebar-link" href="#about" data-view="about"><span class="sidebar-icon">ⓘ</span>О сайте / Контакты</a>
-      </nav>
-      <div class="sidebar-footnote">Удалённые вакансии из открытых источников</div>
-    </aside>
-    <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Закрыть меню" tabindex="-1"></button>
     <main class="shell">
-    <section class="hero">
-      <p class="eyebrow">INTERNATIONAL REMOTE WORK</p>
-      <h1>Найди работу <span>без границ.</span></h1>
-      <p class="subhead">Собираем удалённые вакансии и помогаем оценить совпадение с твоими навыками.</p>
+      <section class="hero">
+        <p class="eyebrow">GLOBAL REMOTE JOB SEARCH</p>
+        <h1>Работа без границ.<br><span>Возможности со всего мира.</span></h1>
+        <p class="subhead">Находи удалённые вакансии, оценивай требования и понимай, насколько предложение подходит твоему уровню и навыкам.</p>
+        <form id="search-form" class="searchbar">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="query" type="search" placeholder="Должность, навык или ключевое слово" aria-label="Поиск вакансий">
+          <button type="submit">Найти вакансии</button>
+        </form>
+      </section>
 
-      <form id="search-form" class="searchbar">
-        <span class="search-icon" aria-hidden="true">⌕</span>
-        <input id="query" type="search" placeholder="Должность, навык или ключевое слово" aria-label="Поиск вакансий">
-        <button type="submit">Найти вакансии</button>
-      </form>
+      <section class="trust-strip" aria-label="Возможности платформы">
+        <div class="trust-item"><span class="trust-icon">◎</span><div><strong>4 источника</strong><span>Международные job boards</span></div></div>
+        <div class="trust-item"><span class="trust-icon">↻</span><div><strong>Каждые 6 часов</strong><span>Обновление базы вакансий</span></div></div>
+        <div class="trust-item"><span class="trust-icon">10</span><div><strong>На странице</strong><span>Удобная навигация по списку</span></div></div>
+        <div class="trust-item"><span class="trust-icon">🌍</span><div><strong>Worldwide first</strong><span>Фокус на работе из любой страны</span></div></div>
+      </section>
 
-
-    </section>
-
-    <section class="profile-panel" aria-labelledby="profile-title">
-      <div class="profile-heading">
-        <div>
-          <p class="eyebrow">YOUR PROFILE</p>
-          <h2 id="profile-title">Сопоставление с резюме</h2>
+      <section class="profile-panel" aria-labelledby="profile-title">
+        <div class="profile-heading">
+          <div><p class="eyebrow">YOUR PROFILE</p><h2 id="profile-title">Персональное совпадение с резюме</h2></div>
+          <span class="privacy-note">Резюме остаётся в этом браузере</span>
         </div>
-        <span class="privacy-note">Резюме обрабатывается только в этой вкладке</span>
-      </div>
-      <p class="profile-intro">Вставь текст резюме или загрузи файл TXT/MD. Мы выделим известные навыки и покажем, какие из них встречаются в описании вакансии.</p>
-      <label class="resume-label" for="resume-text">Текст резюме</label>
-      <textarea id="resume-text" rows="6" maxlength="50000" placeholder="Например: Customer support, Excel, Google Sheets, CRM, research, English B1, prompt engineering…"></textarea>
-      <div class="resume-actions">
-        <label class="upload-button" for="resume-file">Загрузить TXT / MD</label>
-        <input id="resume-file" class="visually-hidden" type="file" accept=".txt,.md,text/plain,text/markdown">
-        <button id="clear-resume" class="text-button" type="button">Очистить резюме</button>
-        <span id="resume-file-name" class="file-name"></span>
-      </div>
-      <div id="resume-summary" class="resume-summary" role="status" aria-live="polite">Резюме не добавлено. Без него вакансии сортируются по ключевому запросу, а оценка навыков не рассчитывается.</div>
-      <p class="privacy-footnote">Файл не отправляется на сервер и не сохраняется в браузере. Сейчас поддерживаются только текстовые файлы TXT и MD; PDF/DOCX пока не разбираются.</p>
-    </section>
+        <p class="profile-intro">Добавь резюме — сайт выделит навыки и сравнит их с требованиями вакансий. Чем точнее указаны навыки и языки, тем полезнее оценка.</p>
+        <label class="resume-label" for="resume-text">Текст резюме</label>
+        <textarea id="resume-text" rows="5" maxlength="50000" placeholder="Например: Customer support, Excel, Google Sheets, CRM, research, English B1, prompt engineering…"></textarea>
+        <div class="resume-actions">
+          <label class="upload-button" for="resume-file">Загрузить TXT / MD</label>
+          <input id="resume-file" class="visually-hidden" type="file" accept=".txt,.md,text/plain,text/markdown">
+          <button id="clear-resume" class="text-button" type="button">Очистить резюме</button>
+          <span id="resume-file-name" class="file-name"></span>
+        </div>
+        <div id="resume-summary" class="resume-summary" role="status" aria-live="polite">Резюме не добавлено. Добавь его, чтобы рассчитать совпадение навыков.</div>
+        <p class="privacy-footnote">Файл не отправляется на сервер и не сохраняется. Поддерживаются TXT и MD; PDF/DOCX пока не разбираются.</p>
+      </section>
 
-    <div class="discovery-layout">
-      <aside class="filter-sidebar" aria-label="Фильтры вакансий">
-      <div class="filters" aria-label="Фильтры вакансий">
-        <label>География
-          <select id="location">
-            <option value="any">Любая</option>
-            <option value="worldwide">Worldwide / Anywhere</option>
-            <option value="europe">Европа / EMEA</option>
-            <option value="americas">Северная и Южная Америка</option>
-            <option value="asia">Азия</option>
-          </select>
-        </label>
-        <label>Уровень
-          <select id="level">
-            <option value="all">Любой</option>
-            <option value="entry">Начальный / без опыта</option>
-            <option value="intern">Стажировка</option>
-            <option value="experienced">Опытный / senior</option>
-          </select>
-        </label>
-        <label>Тип занятости
-          <select id="type">
-            <option value="all">Любой</option>
-            <option value="full_time">Полная</option>
-            <option value="part_time">Частичная</option>
-            <option value="contract">Контракт</option>
-            <option value="internship">Стажировка</option>
-          </select>
-        </label>
+      <div class="discovery-layout">
+        <aside class="filter-sidebar" aria-label="Навигация и фильтры">
+          <div class="sidebar-heading-row"><h2 class="sidebar-heading">Навигация</h2><button id="sidebar-close" class="sidebar-close" type="button" aria-label="Закрыть меню">×</button></div>
+          <nav id="sidebar-nav" class="sidebar-menu" aria-label="Разделы и источники">
+            <div class="sidebar-group"><p class="sidebar-group-title">Вакансии</p>
+              <button class="sidebar-link is-active" type="button" data-view="all" aria-current="page">Все вакансии</button>
+              <button class="sidebar-link" type="button" data-view="today">Новые сегодня</button>
+              <button class="sidebar-link" type="button" data-view="favorites">Избранное</button>
+            </div>
+            <div class="sidebar-group"><p class="sidebar-group-title">Категории</p>
+              <button class="sidebar-link" type="button" data-category="support">Поддержка</button>
+              <button class="sidebar-link" type="button" data-category="admin">Администрирование</button>
+              <button class="sidebar-link" type="button" data-category="marketing">Маркетинг</button>
+              <button class="sidebar-link" type="button" data-category="writing">Тексты</button>
+              <button class="sidebar-link" type="button" data-category="it">IT</button>
+            </div>
+            <div class="sidebar-group"><p class="sidebar-group-title">Источники</p>
+              <button class="sidebar-link" type="button" data-source="jobicy">Jobicy</button>
+              <button class="sidebar-link" type="button" data-source="himalayas">Himalayas</button>
+              <button class="sidebar-link" type="button" data-source="weworkremotely">We Work Remotely</button>
+              <button class="sidebar-link" type="button" data-source="remoteok">Remote OK</button>
+            </div>
+            <a class="sidebar-link sidebar-about" href="#about" data-view="about">О проекте</a>
+          </nav>
+          <div class="sidebar-divider"></div>
+          <h2 class="filter-heading">Фильтры</h2>
+          <div class="filters">
+            <label>География
+              <select id="location">
+                <option value="worldwide" selected>Worldwide / любая страна</option>
+                <option value="any">Все удалённые вакансии</option>
+                <option value="europe">Европа / EMEA</option>
+                <option value="americas">Северная и Южная Америка</option>
+                <option value="asia">Азия</option>
+              </select>
+            </label>
+            <label>Уровень опыта
+              <select id="level">
+                <option value="all">Любой</option>
+                <option value="entry">Начальный / без опыта</option>
+                <option value="intern">Стажировка</option>
+                <option value="experienced">Опытный / senior</option>
+              </select>
+            </label>
+            <label>Тип занятости
+              <select id="type">
+                <option value="all">Любой</option>
+                <option value="full_time">Полная</option>
+                <option value="part_time">Частичная</option>
+                <option value="contract">Контракт</option>
+                <option value="internship">Стажировка</option>
+              </select>
+            </label>
+          </div>
+          <div class="extra-filters">
+            <label class="sort-label" for="sort">Сортировка
+              <select id="sort">
+                <option value="match">По совпадению / релевантности</option>
+                <option value="no-experience">Сначала без опыта</option>
+                <option value="entry">Сначала начальный уровень / Junior</option>
+                <option value="intern">Сначала стажировки</option>
+                <option value="easy">Сначала простые вакансии</option>
+                <option value="newest">Сначала новые</option>
+                <option value="salary">Сначала с указанной зарплатой</option>
+              </select>
+            </label>
+            <label class="checkbox-label"><input id="salary-only" type="checkbox"> Только вакансии с указанной зарплатой</label>
+            <label class="checkbox-label"><input id="no-experience-only" type="checkbox"> Без опыта (скрыть вакансии с обязательным опытом)</label>
+          </div>
+        </aside>
+
+        <section id="results-section" class="results-section">
+          <div class="section-heading">
+            <div><p class="eyebrow">JOB DISCOVERY</p><h2>Подходящие вакансии</h2></div>
+            <button id="refresh" class="ghost-button" type="button">↻ Обновить</button>
+          </div>
+          <div id="status" class="status" role="status" aria-live="polite">Загружаем вакансии…</div>
+          <nav id="pagination-top" class="pagination" aria-label="Пагинация вакансий сверху" hidden></nav>
+          <div id="jobs" class="jobs-grid"></div>
+          <nav id="pagination" class="pagination" aria-label="Пагинация вакансий" hidden></nav>
+          <p class="source-note">Вакансии агрегируются из <a href="https://remoteok.com/" target="_blank" rel="noopener noreferrer">Remote OK</a>, <a href="https://jobicy.com/" target="_blank" rel="noopener noreferrer">Jobicy</a>, <a href="https://weworkremotely.com/" target="_blank" rel="noopener noreferrer">We Work Remotely</a> и <a href="https://himalayas.app/" target="_blank" rel="noopener noreferrer">Himalayas</a>. Для каждой записи сохраняется ссылка на первоисточник. Снимок обновляется GitHub Actions примерно каждые 6 часов. Проверяй требования, географические ограничения и статус вакансии на странице первоисточника.</p>
+        </section>
       </div>
 
-      <div class="extra-filters">
-        <label class="sort-label" for="sort">Сортировка
-          <select id="sort">
-            <option value="match">По совпадению / релевантности</option>
-            <option value="newest">Сначала новые</option>
-            <option value="salary">Сначала с указанной зарплатой</option>
-          </select>
-        </label>
-        <label class="checkbox-label">
-          <input id="salary-only" type="checkbox">
-          Только вакансии с указанной зарплатой
-        </label>
-      </div>
-      </aside>
-    <section id="results-section" class="results-section">
-      <div class="section-heading">
-        <div><p class="eyebrow">JOB DISCOVERY</p><h2>Подходящие вакансии</h2></div>
-        <button id="refresh" class="ghost-button" type="button">↻ Обновить</button>
-      </div>
-      <div id="status" class="status" role="status" aria-live="polite">Загружаем вакансии…</div>
-      <nav id="pagination-top" class="pagination" aria-label="Пагинация вакансий сверху" hidden></nav>
-      <div id="jobs" class="jobs-grid"></div>
-      <nav id="pagination" class="pagination" aria-label="Пагинация вакансий" hidden></nav>
-      <p class="source-note">Вакансии агрегируются из <a href="https://remoteok.com/" target="_blank" rel="noopener noreferrer">Remote OK</a> и <a href="https://jobicy.com/" target="_blank" rel="noopener noreferrer">Jobicy</a>. Для каждой записи сохраняется ссылка на первоисточник. Снимок обновляется GitHub Actions примерно каждые 6 часов. Проверяй требования, географические ограничения и статус вакансии на странице первоисточника.</p>
-    </section>
-    </div>
+      <section class="tracker-panel" aria-labelledby="tracker-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">YOUR APPLICATIONS</p><h2 id="tracker-title">Избранное и отклики</h2></div>
+          <span id="tracker-count" class="tracker-count">0 вакансий</span>
+        </div>
+        <div id="tracker-list" class="tracker-list"><p class="tracker-empty">Сохраняй вакансии кнопкой «В избранное», чтобы вести список откликов.</p></div>
+        <p class="privacy-footnote">Избранное и статусы хранятся только в localStorage этого браузера.</p>
+      </section>
 
-
-    <section class="tracker-panel" aria-labelledby="tracker-title">
-      <div class="section-heading">
-        <div><p class="eyebrow">YOUR APPLICATIONS</p><h2 id="tracker-title">Избранное и отклики</h2></div>
-        <span id="tracker-count" class="tracker-count">0 вакансий</span>
-      </div>
-      <div id="tracker-list" class="tracker-list"><p class="tracker-empty">Сохраняй вакансии кнопкой «В избранное», чтобы вести список откликов.</p></div>
-      <p class="privacy-footnote">Избранное и статусы хранятся только в localStorage этого браузера. Очистка данных сайта удалит их.</p>
-    </section>
-
-    <section class="notice">
-      <strong>Важно:</strong> процент показывает только долю распознанных навыков из текста вакансии, которые найдены в резюме. Это прозрачная эвристика по словарю, а не ИИ-анализ, проверка квалификации или прогноз трудоустройства. Отметки об уровне опыта и географии также приблизительные — проверяй их в первоисточнике.
-    </section>
+      <section class="notice"><strong>Как читать оценки:</strong> сложность и опыт — приблизительные оценки по тексту объявления; английский показывается только если работодатель явно указал уровень. Совпадение навыков рассчитывается по словарю в резюме и описании вакансии, это не прогноз трудоустройства. Если данных нет, мы показываем «Не указано», а не придумываем требования.</section>
     </main>
   </div>
 
   <footer id="about"><span>AI Job Finder</span><span>MVP · Источники: Remote OK и Jobicy · <a href="https://github.com/akazymova57-cmd/AI-Job-Finder" target="_blank" rel="noopener noreferrer">GitHub проекта</a></span></footer>
   <script src="app.js?v=20261108-layout1"></script>
+  <footer id="about"><span>AI Job Finder</span><span>Источники: Remote OK · Jobicy · We Work Remotely · Himalayas · <a href="https://github.com/akazymova57-cmd/AI-Job-Finder" target="_blank" rel="noopener noreferrer">GitHub проекта</a></span></footer>
+  <script src="app.js?v=20261109-no-experience-filter2"></script>
 </body>
 </html>
