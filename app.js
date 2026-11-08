@@ -1,4 +1,4 @@
-const API_URL = "https://remotive.com/api/remote-jobs";
+const API_URL = APP_CONFIG.sources.remotive.apiUrl;
 const CACHE_KEY = "aijf_remotive_cache_v1";
 const REQUESTS_KEY = "aijf_remotive_requests_v1";
 const CACHE_TTL = 6 * 60 * 60 * 1000;
@@ -305,10 +305,24 @@ function jobDate(job) {
 function safeJobUrl(value) {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.href : "https://remotive.com/";
+    const source = APP_CONFIG.sources.remotive;
+    const hostAllowed = source.allowedHosts.some((host) => url.hostname === host || url.hostname.endsWith("." + host));
+    return url.protocol === "https:" && hostAllowed ? url.href : "";
   } catch (_) {
-    return "https://remotive.com/";
+    return "";
   }
+}
+
+function isRecentJob(job) {
+  const publishedAt = jobDate(job);
+  const age = Date.now() - publishedAt;
+  return publishedAt > 0 && age >= 0 && age <= APP_CONFIG.maxJobAgeDays * 24 * 60 * 60 * 1000;
+}
+
+function passesSafetyChecks(job) {
+  if (!job || !String(job.company_name || "").trim() || !safeJobUrl(job.url)) return false;
+  const text = cleanText([job.title, job.description, job.salary].join(" "));
+  return !APP_CONFIG.fraudPatterns.some((pattern) => pattern.test(text));
 }
 
 function render() {
