@@ -11,7 +11,8 @@ const state = {
   resumeText: "",
   resumeSkills: [],
   sourceStatus: "",
-  loading: false
+  loading: false,
+  savedJobs: readSavedJobs()
 };
 
 const $ = (id) => document.getElementById(id);
@@ -450,8 +451,121 @@ function render() {
   }
 
   const countText = "Показано вакансий: " + filtered.length + " из " + state.jobs.length + ".";
-  $("status").textContent = [state.sourceStatus, countText].filter(Boolean).join(" ");
+
+  container.querySelectorAll("[data-favorite-url]").forEach((button) => {
+    const saved = state.savedJobs.some((item) => item.url === button.dataset.favoriteUrl);
+    button.textContent = saved ? "★ В избранном" : "☆ В избранное";
+    button.classList.toggle("is-saved", saved);
+  });
+  renderTracker();
 }
+
+
+const TRACKER_KEY = "aijf_saved_jobs_v1";
+const APPLICATION_STATUSES = [
+  ["saved", "В избранном"],
+  ["planned", "Планирую откликнуться"],
+  ["applied", "Отклик отправлен"],
+  ["interview", "Собеседование"],
+  ["rejected", "Отказ"],
+  ["accepted", "Получено предложение"]
+];
+
+function readSavedJobs() {
+  try {
+    const value = JSON.parse(localStorage.getItem(TRACKER_KEY) || "[]");
+    return Array.isArray(value) ? value.filter((item) => item && typeof item.url === "string") : [];
+  } catch (_) { return []; }
+}
+
+function persistSavedJobs() {
+  try {
+    localStorage.setItem(TRACKER_KEY, JSON.stringify(state.savedJobs));
+    return true;
+  } catch (_) {
+    state.sourceStatus = "Не удалось сохранить избранное. Проверь настройки хранения браузера.";
+    return false;
+  }
+}
+
+function renderTracker() {
+  const list = $("tracker-list");
+  const count = $("tracker-count");
+  if (!list || !count) return;
+  count.textContent = state.savedJobs.length + " вакансий";
+  list.replaceChildren();
+  if (!state.savedJobs.length) {
+    const empty = document.createElement("p");
+    empty.className = "tracker-empty";
+    empty.textContent = "Сохраняй вакансии кнопкой «В избранное», чтобы вести список откликов.";
+    list.append(empty);
+    return;
+  }
+  state.savedJobs.forEach((job) => {
+    const item = document.createElement("article");
+    item.className = "tracker-item";
+    const info = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = job.title || "Вакансия без названия";
+    const company = document.createElement("p");
+    company.textContent = job.company || "Компания не указана";
+    info.append(title, company);
+    const select = document.createElement("select");
+    select.setAttribute("aria-label", "Статус отклика: " + title.textContent);
+    APPLICATION_STATUSES.forEach(([value, label]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      select.append(option);
+    });
+    select.value = job.status || "saved";
+    select.addEventListener("change", () => {
+      job.status = select.value;
+      persistSavedJobs();
+    });
+    const actions = document.createElement("div");
+    actions.style.display = "flex";
+    actions.style.gap = "8px";
+    actions.style.flexWrap = "wrap";
+    const link = document.createElement("a");
+    link.href = safeJobUrl(job.url);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Первоисточник ↗";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "favorite-button";
+    remove.textContent = "Убрать";
+    remove.addEventListener("click", () => {
+      state.savedJobs = state.savedJobs.filter((saved) => saved.url !== job.url);
+      persistSavedJobs();
+      render();
+    });
+    actions.append(link, remove);
+    item.append(info, select, actions);
+    list.append(item);
+  });
+}
+
+$("jobs").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-favorite-url]");
+  if (!button) return;
+  const url = button.dataset.favoriteUrl;
+  const existing = state.savedJobs.find((job) => job.url === url);
+  if (existing) {
+    state.savedJobs = state.savedJobs.filter((job) => job.url !== url);
+  } else {
+    const source = state.jobs.find((job) => safeJobUrl(job.url) === url);
+    if (source) state.savedJobs.push({
+      url,
+      title: source.title || "Вакансия без названия",
+      company: source.company_name || "Компания не указана",
+      status: "saved"
+    });
+  }
+  persistSavedJobs();
+  render();
+});
 
 $("search-form").addEventListener("submit", (event) => {
   event.preventDefault();
