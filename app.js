@@ -232,16 +232,28 @@ function getJobText(job) {
   ].join(" "));
 }
 
+function getJobCategoryText(job) {
+  // Use role metadata, title and tags only; descriptions often contain
+  // unrelated boilerplate that makes category filters too broad.
+  return normalizeText([
+    job.title,
+    job.category,
+    job.job_category,
+    ...(Array.isArray(job.tags) ? job.tags : [])
+  ].join(" "));
+}
+
 function categoryMatches(job, category) {
-  const text = getJobText(job);
+  const text = getJobCategoryText(job);
   const patterns = {
-    it: /software|developer|engineering|engineer|programmer|devops|data analyst|\\bqa\\b|quality assurance|technical|sql|python|javascript|разработ|программ|тестиров|аналитик данных/i,
+    it: /software developer|software engineer|web developer|frontend|front-end|backend|back-end|full[- ]stack|programmer|engineer|engineering|devops|data analyst|quality assurance|\bqa\b|sql developer|python developer|javascript|разработчик|программист|инженер|тестировщик|аналитик данных/i,
     design: /design|designer|figma|ux\b|ui\b|graphic|visual|дизайн|дизайнер/i,
     marketing: /marketing|seo|sem\b|growth|social media|smm|performance|маркетинг|продвижен/i,
-    support: /customer support|customer service|support agent|help desk|technical support|поддержк|служба поддержки/i,
+    support: /customer support|customer service|customer care|client support|support engineer|technical support|support specialist|support agent|help ?desk|service desk|customer success|поддержк|служба поддержки|специалист поддержки|инженер поддержки/i,
     writing: /copywriter|copywriting|content writer|technical writer|editor|writing|копирайт|редактор|автор текст/i,
     admin: /administrative|administrator|virtual assistant|operations|coordinator|data entry|office manager|администратор|ассистент|ввод данных/i
   };
+  if (category === "it" && patterns.support.test(text)) return false;
   return Boolean(patterns[category] && patterns[category].test(text));
 }
 
@@ -761,7 +773,15 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
     state.quickCategory = "";
     state.quickSource = "";
   } else if (item.dataset.category) {
+    // A sidebar category is a standalone shortcut: remove stale search and
+    // form filters so they cannot silently hide matching vacancies.
+    $("query").value = "";
+    state.query = "";
+    $("location").value = "any";
+    $("level").value = "all";
     $("type").value = "all";
+    $("salary-only").checked = false;
+    $("sort").value = "newest";
     state.quickSource = "";
   } else if (item.dataset.source) {
     $("type").value = "all";
@@ -771,9 +791,7 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
   setSidebarActive(item);
   closeSidebar();
   render();
-  if (window.matchMedia("(max-width: 900px)").matches) {
-    $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 [$("pagination-top"), $("pagination")].filter(Boolean).forEach((nav) => nav.addEventListener("click", (event) => {
