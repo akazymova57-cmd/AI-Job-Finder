@@ -7,7 +7,7 @@ const source = APP_CONFIG.sources.remotive;
 const API_URL = source.apiUrl + "?limit=1000";
 
 function clean(value) {
-  return String(value || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim();
+  return String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function validJob(job, now) {
@@ -38,7 +38,7 @@ const now = Date.now();
 const unique = new Map();
 for (const job of payload.jobs) {
   if (!validJob(job, now)) continue;
-  const key = clean(job.url).toLowerCase().replace(/\\/$/, "");
+  const key = clean(job.url).toLowerCase().replace(/\/$/, "");
   if (!unique.has(key)) unique.set(key, job);
 }
 
@@ -51,6 +51,6 @@ await writeFile(
     updatedAt: new Date(now).toISOString(),
     maxAgeDays: APP_CONFIG.maxJobAgeDays,
     jobs
-  }, null, 2) + "\\n"
+  }, null, 2) + "\n"
 );
 console.log(`Saved ${jobs.length} current unique vacancies.`);
