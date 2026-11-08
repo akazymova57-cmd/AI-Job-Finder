@@ -251,3 +251,83 @@ footer a{color:#287c91}
   .sidebar-backdrop{background:rgba(12,25,42,.58)}
 }
 @media(prefers-reduced-motion:reduce){.sidebar-menu .sidebar-link,.job-card{transition:none!important}}
+
+
+/* Search sidebar refinement — restrained mint accents and visible quick filters */
+:root{
+  --sidebar-accent:#48b99a;
+  --sidebar-accent-strong:#238d78;
+  --sidebar-accent-soft:#e9f6f2;
+}
+.sidebar-menu .sidebar-link:hover{
+  background:#f0f6f4;
+  color:#287f70;
+  transform:none;
+}
+.sidebar-menu .sidebar-link.is-active{
+  background:#e7f4ef;
+  color:#176f60;
+  box-shadow:inset 3px 0 #48b99a;
+}
+.filter-heading{color:#1d3148}
+.filters label,.sort-label,.checkbox-label{color:#526477}
+.filters select,.sort-label select{
+  background:#f8fafb;
+  border-color:#dce5e8;
+  color:#26394e;
+}
+.filters select:focus,.sort-label select:focus{
+  border-color:#70bba7;
+  outline:3px solid rgba(72,185,154,.12);
+}
+.quick-filters{
+  display:grid;
+  gap:9px;
+  margin-top:18px;
+  padding:15px 0 16px;
+  border-top:1px solid #e7edf0;
+  border-bottom:1px solid #e7edf0;
+}
+.quick-filters h3{
+  margin:0 0 2px;
+  color:#8795a5;
+  font:800 9px Manrope,sans-serif;
+  letter-spacing:1.1px;
+  text-transform:uppercase;
+}
+.quick-filter-card{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  min-width:0;
+  padding:11px 12px;
+  border:1px solid #e2eae9;
+  border-radius:11px;
+  background:#fbfdfc;
+  cursor:pointer;
+  transition:border-color .16s ease,background .16s ease,box-shadow .16s ease;
+}
+.quick-filter-card:hover{
+  border-color:#b8ded2;
+  background:#f5fbf8;
+}
+.quick-filter-card:has(input:checked){
+  border-color:#83cbb5;
+  background:#edf8f3;
+  box-shadow:inset 3px 0 #48b99a;
+}
+.quick-filter-card input{
+  width:16px;
+  height:16px;
+  flex:0 0 16px;
+  margin:2px 0 0;
+  accent-color:#29977e;
+}
+.quick-filter-copy{display:grid;gap:3px;min-width:0}
+.quick-filter-copy strong{color:#263b4d;font-size:11px;font-weight:700}
+.quick-filter-copy small{color:#81909d;font-size:9px;line-height:1.4}
+.extra-filters{margin-top:15px;padding-top:14px;border-top:0}
+@media(max-width:760px){
+  .quick-filters{margin-top:15px}
+  .quick-filter-card{padding:12px}
+}
