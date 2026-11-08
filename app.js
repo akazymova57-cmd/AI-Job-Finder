@@ -294,11 +294,11 @@ function passesSafetyChecks(job) {
 }
 
 function renderPagination(totalItems, totalPages, startIndex, endIndex) {
-  const nav = $("pagination");
-  if (!nav) return;
-  nav.replaceChildren();
-  nav.hidden = totalPages <= 1;
-  if (totalPages <= 1) return;
+  const navs = [$("pagination-top"), $("pagination")].filter(Boolean);
+  navs.forEach((nav) => {
+    nav.replaceChildren();
+    nav.hidden = totalPages <= 1;
+    if (totalPages <= 1) return;
 
   const addButton = (label, page, options = {}) => {
     const button = document.createElement("button");
@@ -344,6 +344,7 @@ function renderPagination(totalItems, totalPages, startIndex, endIndex) {
   addButton(currentLanguage === "ru" ? "Далее →" : "Next →", state.currentPage + 1, {
     disabled: state.currentPage === totalPages,
     ariaLabel: currentLanguage === "ru" ? "Следующая страница" : "Next page"
+  });
   });
 }
 
@@ -666,7 +667,7 @@ function renderTracker() {
   });
 }
 
-$("pagination")?.addEventListener("click", (event) => {
+[$("pagination-top"), $("pagination")].filter(Boolean).forEach((nav) => nav.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-page]");
   if (!button || button.disabled) return;
   const nextPage = Number(button.dataset.page);
@@ -674,7 +675,7 @@ $("pagination")?.addEventListener("click", (event) => {
   state.currentPage = nextPage;
   render();
   $("jobs").scrollIntoView({ behavior: "smooth", block: "start" });
-});
+}));
 
 $("jobs").addEventListener("click", (event) => {
   const button = event.target.closest("[data-favorite-url]");
