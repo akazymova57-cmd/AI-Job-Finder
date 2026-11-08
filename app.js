@@ -246,7 +246,7 @@ function getJobCategoryText(job) {
 function categoryMatches(job, category) {
   const text = getJobCategoryText(job);
   const patterns = {
-    it: /software developer|software engineer|web developer|frontend|front-end|backend|back-end|full[- ]stack|programmer|engineer|engineering|devops|data analyst|quality assurance|\\bqa\\b|sql developer|python developer|javascript|разработчик|программист|инженер|тестировщик|аналитик данных/i,
+    it: /software developer|software engineer|web developer|frontend|front-end|backend|back-end|full[- ]stack|programmer|engineer|engineering|devops|data analyst|quality assurance|\bqa\b|sql developer|python developer|javascript|разработчик|программист|инженер|тестировщик|аналитик данных/i,
     design: /design|designer|figma|ux\b|ui\b|graphic|visual|дизайн|дизайнер/i,
     marketing: /marketing|seo|sem\b|growth|social media|smm|performance|маркетинг|продвижен/i,
     support: /customer support|customer service|customer care|client support|support engineer|technical support|support specialist|support agent|help ?desk|service desk|customer success|поддержк|служба поддержки|специалист поддержки|инженер поддержки/i,
