@@ -4,6 +4,7 @@ const REQUESTS_KEY = "aijf_remotive_requests_v1";
 const CACHE_TTL = 6 * 60 * 60 * 1000;
 const REQUEST_WINDOW = 24 * 60 * 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 4;
+const TRACKER_KEY = "aijf_saved_jobs_v1";
 
 const state = {
   jobs: [],
@@ -461,7 +462,6 @@ function render() {
 }
 
 
-const TRACKER_KEY = "aijf_saved_jobs_v1";
 const APPLICATION_STATUSES = [
   ["saved", "В избранном"],
   ["planned", "Планирую откликнуться"],
