@@ -56,7 +56,7 @@ window.APP_TRANSLATIONS.en = {
   "Уровень не подтверждён": "Level not confirmed",
   "Переводим…": "Translating…",
   "Скрыть перевод": "Hide translation",
-  "Повторить перевод": "Retry translation"
+  "Повторить перевод": "Retry translation",
   "По этим фильтрам вакансий не найдено. Измени запрос или параметры.": "No vacancies match these filters. Change your search or filters.",
   "Пока нет загруженных вакансий. Попробуй обновить список позже.": "No vacancies have been loaded yet. Try refreshing later.",
   "Добавь резюме, чтобы увидеть совпадение навыков.": "Add a resume to see skill matches.",
