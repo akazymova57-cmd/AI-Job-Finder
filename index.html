@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#101827">
   <meta name="description" content="Поиск международных удалённых вакансий с фильтрами и прозрачной оценкой совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">\n  <script src="config.js"></script>\n  <script src="translations/ru.js"></script>\n  <script src="translations/en.js"></script>
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="./"><span class="brand-mark">J</span><span>AI Job Finder</span></a>
-    <span class="live-label"><i></i> MVP · Beta</span>
+    <div class="header-actions"><button id="language-toggle" class="language-toggle" type="button" aria-label="Switch language">RU / EN</button><span class="live-label"><i></i> MVP · Beta</span></div>
   </header>
 
   <main class="shell">
@@ -26,6 +26,32 @@
         <button type="submit">Найти вакансии</button>
       </form>
 
+
+    </section>
+
+    <section class="profile-panel" aria-labelledby="profile-title">
+      <div class="profile-heading">
+        <div>
+          <p class="eyebrow">YOUR PROFILE</p>
+          <h2 id="profile-title">Сопоставление с резюме</h2>
+        </div>
+        <span class="privacy-note">Резюме обрабатывается только в этой вкладке</span>
+      </div>
+      <p class="profile-intro">Вставь текст резюме или загрузи файл TXT/MD. Мы выделим известные навыки и покажем, какие из них встречаются в описании вакансии.</p>
+      <label class="resume-label" for="resume-text">Текст резюме</label>
+      <textarea id="resume-text" rows="6" maxlength="50000" placeholder="Например: Customer support, Excel, Google Sheets, CRM, research, English B1, prompt engineering…"></textarea>
+      <div class="resume-actions">
+        <label class="upload-button" for="resume-file">Загрузить TXT / MD</label>
+        <input id="resume-file" class="visually-hidden" type="file" accept=".txt,.md,text/plain,text/markdown">
+        <button id="clear-resume" class="text-button" type="button">Очистить резюме</button>
+        <span id="resume-file-name" class="file-name"></span>
+      </div>
+      <div id="resume-summary" class="resume-summary" role="status" aria-live="polite">Резюме не добавлено. Без него вакансии сортируются по ключевому запросу, а оценка навыков не рассчитывается.</div>
+      <p class="privacy-footnote">Файл не отправляется на сервер и не сохраняется в браузере. Сейчас поддерживаются только текстовые файлы TXT и MD; PDF/DOCX пока не разбираются.</p>
+    </section>
+
+    <div class="discovery-layout">
+      <aside class="filter-sidebar" aria-label="Фильтры вакансий">
       <div class="filters" aria-label="Фильтры вакансий">
         <label>География
           <select id="location">
@@ -68,29 +94,7 @@
           Только вакансии с указанной зарплатой
         </label>
       </div>
-    </section>
-
-    <section class="profile-panel" aria-labelledby="profile-title">
-      <div class="profile-heading">
-        <div>
-          <p class="eyebrow">YOUR PROFILE</p>
-          <h2 id="profile-title">Сопоставление с резюме</h2>
-        </div>
-        <span class="privacy-note">Резюме обрабатывается только в этой вкладке</span>
-      </div>
-      <p class="profile-intro">Вставь текст резюме или загрузи файл TXT/MD. Мы выделим известные навыки и покажем, какие из них встречаются в описании вакансии.</p>
-      <label class="resume-label" for="resume-text">Текст резюме</label>
-      <textarea id="resume-text" rows="6" maxlength="50000" placeholder="Например: Customer support, Excel, Google Sheets, CRM, research, English B1, prompt engineering…"></textarea>
-      <div class="resume-actions">
-        <label class="upload-button" for="resume-file">Загрузить TXT / MD</label>
-        <input id="resume-file" class="visually-hidden" type="file" accept=".txt,.md,text/plain,text/markdown">
-        <button id="clear-resume" class="text-button" type="button">Очистить резюме</button>
-        <span id="resume-file-name" class="file-name"></span>
-      </div>
-      <div id="resume-summary" class="resume-summary" role="status" aria-live="polite">Резюме не добавлено. Без него вакансии сортируются по ключевому запросу, а оценка навыков не рассчитывается.</div>
-      <p class="privacy-footnote">Файл не отправляется на сервер и не сохраняется в браузере. Сейчас поддерживаются только текстовые файлы TXT и MD; PDF/DOCX пока не разбираются.</p>
-    </section>
-
+      </aside>
     <section class="results-section">
       <div class="section-heading">
         <div><p class="eyebrow">JOB DISCOVERY</p><h2>Подходящие вакансии</h2></div>
@@ -98,8 +102,9 @@
       </div>
       <div id="status" class="status" role="status" aria-live="polite">Загружаем вакансии…</div>
       <div id="jobs" class="jobs-grid"></div>
-      <p class="source-note">Вакансии предоставлены <a href="https://remotive.com/" target="_blank" rel="noopener noreferrer">Remotive</a>. Сохраняем ссылку на первоисточник каждой вакансии. API ограничен четырьмя запросами в сутки; список может обновляться с задержкой. Всегда проверяй требования и географические ограничения на странице работодателя.</p>
+      <p class="source-note">Вакансии предоставлены <a href="https://remotive.com/" target="_blank" rel="noopener noreferrer">Remotive</a>. Сохраняем ссылку на первоисточник каждой вакансии. Снимок данных обновляется GitHub Actions примерно каждые 6 часов; дополнительно доступен прямой запрос к API. Всегда проверяй требования, географические ограничения и статус вакансии на странице работодателя.</p>
     </section>
+    </div>
 
 
     <section class="tracker-panel" aria-labelledby="tracker-title">

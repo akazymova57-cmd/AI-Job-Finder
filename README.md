@@ -1,62 +1,59 @@
 # AI Job Finder
 
-A lightweight, no-build MVP for discovering international remote jobs and comparing vacancy text with a resume using a transparent local keyword dictionary.
+Статический сайт для поиска международной удалённой работы. Интерфейс работает на HTML, CSS и vanilla JavaScript; сборщик и npm-пакеты для запуска не требуются.
 
-## Current features
+## Возможности текущей версии
 
-- Search job titles, companies, tags and descriptions.
-- Filter by broad geography, experience signal, employment type and disclosed salary.
-- Sort by resume-skill overlap, publication date or salary disclosure.
-- Paste resume text or upload a plain-text `.txt` / Markdown `.md` file (maximum 1 MB).
-- Extract a limited, explicit dictionary of skills from the resume and vacancy text.
-- Show matched skills, skills mentioned in the vacancy but not found in the resume, and a coverage percentage.
-- Open the original vacancy URL on the provider's website.
-- Cache API results in the browser for six hours.
+- Поиск и фильтрация вакансий Remotive.
+- Сопоставление текста вакансии с резюме по прозрачному словарю ключевых навыков.
+- Избранное и трекер откликов в localStorage браузера.
+- Проверка ссылок: только HTTPS и домены, явно перечисленные в `config.js`.
+- Фильтр вакансий старше 30 дней и записей без названия компании.
+- Базовые эвристики для выявления подозрительных формулировок.
+- Переключатель RU/EN, сохранение выбранного языка.
+- Кнопка перевода описания вакансии через публичный MyMemory API.
+- Жалоба на вакансию открывает форму создания GitHub Issue.
+- Адаптивный интерфейс с отдельной колонкой фильтров на широком экране.
 
-## Favorites and application tracker
+## Запуск локально
 
-- Save vacancies to a local favorites list.
-- Track each saved vacancy as saved, planned, applied, interview, rejected or offer received.
-- Open the original vacancy source from the tracker.
-- Favorites and statuses are stored in this browser's localStorage only; they are not synced between devices and can be cleared with site data.
+Откройте `index.html` в браузере. Если браузер блокирует сетевые запросы при открытии файла напрямую, запустите статический сервер:
 
-## Resume matching: what the percentage means
+```bash
+python -m http.server 8000
+```
 
-The matching score is deliberately not described as AI. The browser checks for a fixed list of skill phrases in the resume and in each vacancy's title, tags and description.
+Затем откройте http://localhost:8000.
 
-`matched skills / recognized vacancy skills × 100`
+## Источники вакансий и конфигурация
 
-For example, if a vacancy contains five recognized skills and three of them are also found in the resume, the displayed coverage is 60%. The card lists both the overlap and the skills not found in the resume.
+Список источников, разрешённые домены, максимальный возраст вакансии и шаблоны подозрительных фраз находятся в `config.js`.
 
-This is only a keyword-coverage indicator. It does not understand context, proficiency, years of experience, seniority, language level, work authorization or whether a skill is mandatory. A skill mentioned in a company description can also be counted. If the dictionary finds no skills in a vacancy, no percentage is shown. The dictionary is intentionally visible in `app.js` and can be extended.
+На данный момент реально подключён только Remotive API:
+https://remotive.com/api/remote-jobs
 
-## Resume privacy and supported formats
+Добавление источника требует отдельного адаптера, который преобразует ответ API/RSS в используемую сайтом структуру вакансии (title, company_name, url, publication_date, description, salary, job_type, tags, candidate_required_location). После этого добавьте источник и его официальные домены в `config.js`. Не добавляйте домены агрегаторов и URL-редиректов в белый список без проверки владельца источника.
 
-Resume text is processed in the current browser tab only. It is not sent to Remotive, stored in localStorage or uploaded to a backend. The current version reads TXT and MD files only. PDF and DOCX parsing are not implemented.
+RemoteOK, We Work Remotely, Himalayas и hh.ru пока не подключены. Для некоторых из них может понадобиться серверный прокси из-за CORS, RSS или условий API. Нельзя считать их подключёнными только по наличию в конфиге.
 
-## Run locally
+## Автоматическое обновление\n\nWorkflow `.github/workflows/refresh-jobs.yml` запускается каждые 6 часов и вручную через GitHub Actions. Скрипт `scripts/update-jobs.mjs` получает данные Remotive, отбрасывает старые, дублирующиеся и подозрительные записи, проверяет HTTPS/домен и сохраняет снимок в `data/jobs.json`. Сайт сначала читает этот снимок, а при пустом снимке пробует публичный API напрямую. Закрытые вакансии исчезают из следующего снимка, если источник больше их не возвращает. Это не мгновенная проверка статуса каждой вакансии.\n\nДля работы workflow после слияния PR в `main` в Settings → Actions → General должно быть разрешено GitHub Actions с правом записи содержимого репозитория (workflow использует встроенный `GITHUB_TOKEN`; отдельный API-ключ не нужен).\n\n## Ограничения безопасности и актуальности
 
-Open `index.html` in a browser. If your browser blocks local-file requests, run a static server:
+- Возраст вакансии рассчитывается по дате публикации, которую возвращает источник. Вакансии без корректной даты скрываются.
+- Проверка мошенничества эвристическая и не гарантирует обнаружение всех схем. Она может давать ложные срабатывания.
+- Уровень английского в карточке извлекается по ключевым словам из текста вакансии; если явного уровня нет, показывается «не указан». Это не подтверждённая оценка работодателя.
+- Проверка HTTPS и домена подтверждает только соответствие URL белому списку, но не гарантирует добросовестность работодателя.
+- Кнопка жалобы создаёт черновик GitHub Issue; отправка зависит от действий пользователя и прав доступа к репозиторию.
+- Перевод использует сторонний публичный сервис MyMemory и может быть ограничен по длине или частоте запросов.
+- В текущей статической версии нет фонового мониторинга закрытых вакансий и серверного обновления. Для этого требуется GitHub Actions или backend. Автоматическое обновление данных из браузера ограничено API Remotive и локальным кэшем.
 
-    python -m http.server 8000
+## Резюме и приватность
 
-Then open http://localhost:8000.
+Текст резюме анализируется в браузере и не отправляется в API вакансий. Сейчас поддерживаются TXT и MD. PDF/DOCX не разбираются.
 
-## Data source, attribution and request limits
+## Ключи и переменные окружения
 
-This MVP uses the public Remotive API: https://remotive.com/api/remote-jobs
+Для текущей клиентской версии API-ключи не нужны. Не помещайте секреты в JavaScript или GitHub Pages: все файлы фронтенда доступны посетителям. Если позднее будет добавлен backend или workflow с секретами, храните их в GitHub Actions Secrets / переменных окружения и документируйте имена в `.env.example`. Сам файл `.env` в репозиторий добавлять нельзя.
 
-The interface attributes Remotive and links each result to the original vacancy URL supplied by the API. The browser caches results for six hours and tracks API request attempts locally, blocking more than four requests in a rolling 24-hour window per browser profile. Failed attempts count toward this local limit to avoid repeated polling.
+## Публикация
 
-This client-side limit is a courtesy safeguard, not server-side enforcement; clearing browser storage or using another browser can reset it. Review Remotive's current API terms before public or commercial deployment.
-
-## Important limitations
-
-- No LLM, paid API, scraping, application submission or account system is used.
-- Experience and geography filters are keyword heuristics, not verified eligibility checks.
-- Location labels and vacancy details can be stale; confirm country eligibility, language requirements and terms on the employer's page.
-- The frontend is static. There is no server-side rate limiter, database, user profile storage or monitoring yet.
-
-## Deploy
-
-The project can be hosted as a static site with GitHub Pages. In repository settings, enable Pages and select the `main` branch with the root folder as the publishing source.
+GitHub Pages может публиковать статический сайт из корня ветки, выбранной в настройках Pages. Для этой задачи изменения готовятся в отдельной ветке и попадут в основную только после проверки и слияния Pull Request.

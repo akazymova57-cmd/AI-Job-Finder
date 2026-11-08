@@ -271,3 +271,46 @@ footer {
   .tracker-item { grid-template-columns: 1fr; }
   .tracker-item a { justify-self: start; }
 }
+
+
+/* Wide desktop layout */
+@media (min-width: 1100px) {
+  .shell { max-width: 1600px; padding-left: 36px; padding-right: 36px; }
+  .topbar { padding-left: max(36px, calc((100% - 1528px) / 2)); padding-right: max(36px, calc((100% - 1528px) / 2)); }
+  .hero { text-align: left; }
+  .searchbar { margin-left: 0; max-width: 900px; }
+  .filters, .extra-filters { justify-content: flex-start; }
+  .jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .job-card { min-height: 270px; padding: 24px; }
+  .job-card h3 { font-size: 20px; }
+  .company, .meta { font-size: 14px; }
+  .badge { font-size: 12px; }
+}
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.language-toggle { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--panel); color: var(--text); font-weight: 700; }
+.report-link { color: var(--warning); font-size: 11px; text-decoration: underline; }
+@media (max-width: 700px) { .header-actions { gap: 7px; } .live-label { font-size: 10px; } }
+
+
+/* Search filters beside the job results */
+.discovery-layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 30px; align-items: start; }
+.filter-sidebar { position: sticky; top: 18px; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.filter-sidebar .filters { align-items: stretch; flex-direction: column; margin: 0; }
+.filter-sidebar .filters label { align-items: flex-start; flex-direction: column; gap: 7px; }
+.filter-sidebar .filters select, .filter-sidebar .sort-label select { width: 100%; max-width: none; }
+.filter-sidebar .extra-filters { align-items: stretch; flex-direction: column; margin-top: 20px; }
+.filter-sidebar .sort-label { align-items: flex-start; flex-direction: column; gap: 7px; }
+.results-section { min-width: 0; }
+.translate-button { align-self: flex-start; margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: var(--panel-2); color: var(--accent); font-size: 12px; cursor: pointer; }
+.translate-button:disabled { opacity: .6; cursor: wait; }
+.translation-output { margin-top: 10px; padding: 13px; border: 1px solid var(--line); border-radius: 9px; color: var(--text); font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+.translation-output[hidden] { display: none; }
+@media (max-width: 900px) {
+  .discovery-layout { grid-template-columns: 1fr; gap: 18px; }
+  .filter-sidebar { position: static; }
+  .filter-sidebar .filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filter-sidebar .extra-filters { display: grid; grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .filter-sidebar .filters, .filter-sidebar .extra-filters { grid-template-columns: 1fr; }
+}

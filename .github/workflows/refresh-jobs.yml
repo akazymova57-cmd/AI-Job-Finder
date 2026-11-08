@@ -1,0 +1,33 @@
+name: Refresh job listings
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Fetch and validate vacancies
+        run: node scripts/update-jobs.mjs
+      - name: Commit updated data
+        run: |
+          if git diff --quiet -- data/jobs.json; then
+            echo "No job data changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/jobs.json
+          git commit -m "Refresh verified job listings"
+          git push

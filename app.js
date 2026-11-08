@@ -1,4 +1,4 @@
-const API_URL = "https://remotive.com/api/remote-jobs";
+const API_URL = APP_CONFIG.sources.remotive.apiUrl;
 const CACHE_KEY = "aijf_remotive_cache_v1";
 const REQUESTS_KEY = "aijf_remotive_requests_v1";
 const CACHE_TTL = 6 * 60 * 60 * 1000;
@@ -17,6 +17,26 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+let currentLanguage = localStorage.getItem("aijf_language") === "en" ? "en" : "ru";
+
+function applyLanguage() {
+  const dictionary = (window.APP_TRANSLATIONS && window.APP_TRANSLATIONS[currentLanguage]) || {};
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    const original = node.nodeValue.trim();
+    if (original && dictionary[original]) node.nodeValue = node.nodeValue.replace(original, dictionary[original]);
+  }
+  document.documentElement.lang = currentLanguage;
+  const toggle = $("language-toggle");
+  if (toggle) toggle.textContent = currentLanguage === "ru" ? "RU / EN" : "EN / RU";
+}
+
+$("language-toggle")?.addEventListener("click", () => {
+  currentLanguage = currentLanguage === "ru" ? "en" : "ru";
+  localStorage.setItem("aijf_language", currentLanguage);
+  location.reload();
+});
 
 const SKILL_CATALOG = [
   { id: "customer-support", label: "Customer support", terms: ["customer support", "customer service", "technical support", "support agent", "поддержка клиентов", "служба поддержки", "работа с клиентами"] },
@@ -193,16 +213,20 @@ async function loadJobs(force) {
   recordApiRequest();
 
   try {
-    const response = await fetch(API_URL + "?limit=100", {
-      headers: { Accept: "application/json" }
-    });
+    let data = null;
+    const snapshotResponse = await fetch("./data/jobs.json", { cache: "no-store" });
+    if (snapshotResponse.ok) {
+      const snapshot = await snapshotResponse.json();
+      if (snapshot && Array.isArray(snapshot.jobs) && snapshot.jobs.length) data = snapshot;
+    }
+    if (!data) {
+      const response = await fetch(API_URL + "?limit=100", { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      data = await response.json();
+    }
+    if (!data || !Array.isArray(data.jobs)) throw new Error("Источник вернул неожиданный формат данных");
 
-    if (!response.ok) throw new Error("HTTP " + response.status);
-
-    const data = await response.json();
-    if (!data || !Array.isArray(data.jobs)) throw new Error("API вернул неожиданный формат данных");
-
-    state.jobs = data.jobs;
+    state.jobs = data.jobs.filter((job) => isRecentJob(job) && passesSafetyChecks(job));
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), jobs: state.jobs }));
     } catch (_) {}
@@ -285,10 +309,24 @@ function jobDate(job) {
 function safeJobUrl(value) {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.href : "https://remotive.com/";
+    const source = APP_CONFIG.sources.remotive;
+    const hostAllowed = source.allowedHosts.some((host) => url.hostname === host || url.hostname.endsWith("." + host));
+    return url.protocol === "https:" && hostAllowed ? url.href : "";
   } catch (_) {
-    return "https://remotive.com/";
+    return "";
   }
+}
+
+function isRecentJob(job) {
+  const publishedAt = jobDate(job);
+  const age = Date.now() - publishedAt;
+  return publishedAt > 0 && age >= 0 && age <= APP_CONFIG.maxJobAgeDays * 24 * 60 * 60 * 1000;
+}
+
+function passesSafetyChecks(job) {
+  if (!job || !String(job.company_name || "").trim() || !safeJobUrl(job.url)) return false;
+  const text = cleanText([job.title, job.description, job.salary].join(" "));
+  return !APP_CONFIG.fraudPatterns.some((pattern) => pattern.test(text));
 }
 
 function render() {
@@ -299,6 +337,7 @@ function render() {
   const salaryOnly = $("salary-only").checked;
 
   const filtered = state.jobs.filter((job) => {
+    if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
     const text = getJobText(job);
     if (query && !normalizeText(query).split(/\s+/).filter(Boolean).every((word) => text.includes(word))) return false;
     if (!locationMatches(job, location)) return false;
@@ -395,6 +434,36 @@ function render() {
       }
       card.append(badges);
 
+      const translationButton = document.createElement("button");
+      translationButton.type = "button";
+      translationButton.className = "translate-button";
+      translationButton.textContent = currentLanguage === "ru" ? "Перевести на русский" : "Translate to Russian";
+      const translationOutput = document.createElement("div");
+      translationOutput.className = "translation-output";
+      translationButton.addEventListener("click", async () => {
+        translationButton.disabled = true;
+        translationButton.textContent = currentLanguage === "ru" ? "Переводим…" : "Translating…";
+        try {
+          const sourceText = cleanText(job.description || "");
+          if (!sourceText) throw new Error("Описание вакансии отсутствует");
+          const response = await fetch("https://api.mymemory.translated.net/get?q=" + encodeURIComponent(sourceText.slice(0, 4500)) + "&langpair=en|ru");
+          if (!response.ok) throw new Error("Сервис перевода временно недоступен");
+          const result = await response.json();
+          const translated = result && result.responseData && result.responseData.translatedText;
+          if (!translated) throw new Error("Перевод не получен");
+          translationOutput.textContent = translated;
+          translationOutput.hidden = false;
+          translationButton.textContent = "Скрыть перевод";
+        } catch (error) {
+          translationOutput.textContent = "Не удалось перевести: " + error.message;
+          translationOutput.hidden = false;
+          translationButton.textContent = "Повторить перевод";
+        } finally {
+          translationButton.disabled = false;
+        }
+      });
+      card.append(translationButton, translationOutput);
+
       if (state.resumeSkills.length) {
         const match = getResumeMatch(job);
         const matchDetails = document.createElement("div");
@@ -453,7 +522,13 @@ function render() {
       favorite.textContent = isSaved ? "★ В избранном" : "☆ В избранное";
       favorite.classList.toggle("is-saved", isSaved);
 
-      bottom.append(relevance, link, favorite);
+      const report = document.createElement("a");
+      report.className = "report-link";
+      report.textContent = "Пожаловаться";
+      report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url) + "\\nКомпания: " + (job.company_name || "не указана") + "\\nОпишите проблему:");
+      report.target = "_blank";
+      report.rel = "noopener noreferrer";
+      bottom.append(relevance, link, favorite, report);
       card.append(bottom);
       container.append(card);
     });
