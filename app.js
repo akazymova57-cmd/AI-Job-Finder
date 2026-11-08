@@ -25,8 +25,18 @@ function applyLanguage() {
   let node;
   while ((node = walker.nextNode())) {
     const original = node.nodeValue.trim();
-    if (original && dictionary[original]) node.nodeValue = node.nodeValue.replace(original, dictionary[original]);
+    if (original && dictionary[original]) {
+      node.nodeValue = node.nodeValue.replace(original, dictionary[original]);
+    }
   }
+
+  document.querySelectorAll("[placeholder], [aria-label], [title]").forEach((element) => {
+    ["placeholder", "aria-label", "title"].forEach((attribute) => {
+      const value = element.getAttribute(attribute);
+      if (value && dictionary[value]) element.setAttribute(attribute, dictionary[value]);
+    });
+  });
+
   document.documentElement.lang = currentLanguage;
   const toggle = $("language-toggle");
   if (toggle) toggle.textContent = currentLanguage === "ru" ? "RU / EN" : "EN / RU";
@@ -199,18 +209,9 @@ async function loadJobs(force) {
 
   if (!state.jobs.length && anyCache) state.jobs = anyCache.jobs;
 
-  const requestTimes = readRequestTimes();
-  if (requestTimes.length >= MAX_REQUESTS_PER_WINDOW) {
-    const availableAt = nextRequestTime(requestTimes);
-    state.sourceStatus = "Лимит Remotive: не более четырёх запросов за 24 часа с этого браузера. Следующее обновление возможно после " + formatTime(availableAt) + ".";
-    render();
-    return;
-  }
-
   state.loading = true;
   $("refresh").disabled = true;
   $("status").textContent = "Загружаем вакансии из Remotive…";
-  recordApiRequest();
 
   try {
     let data = null;
@@ -220,6 +221,12 @@ async function loadJobs(force) {
       if (snapshot && Array.isArray(snapshot.jobs) && snapshot.jobs.length) data = snapshot;
     }
     if (!data) {
+      const requestTimes = readRequestTimes();
+      if (requestTimes.length >= MAX_REQUESTS_PER_WINDOW) {
+        const availableAt = nextRequestTime(requestTimes);
+        throw new Error("Лимит прямых запросов Remotive исчерпан. Следующее обновление возможно после " + formatTime(availableAt) + ".");
+      }
+      recordApiRequest();
       const response = await fetch(API_URL + "?limit=100", { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error("HTTP " + response.status);
       data = await response.json();
@@ -525,7 +532,7 @@ function render() {
       const report = document.createElement("a");
       report.className = "report-link";
       report.textContent = "Пожаловаться";
-      report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url) + "\\nКомпания: " + (job.company_name || "не указана") + "\\nОпишите проблему:");
+      report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url) + "\nКомпания: " + (job.company_name || "не указана") + "\nОпишите проблему:");
       report.target = "_blank";
       report.rel = "noopener noreferrer";
       bottom.append(relevance, link, favorite, report);
@@ -535,6 +542,7 @@ function render() {
   }
 
   const countText = "Показано вакансий: " + filtered.length + " из " + state.jobs.length + ".";
+  $("status").textContent = (state.sourceStatus ? state.sourceStatus + " " : "") + countText;
 
   container.querySelectorAll("[data-favorite-url]").forEach((button) => {
     const saved = state.savedJobs.some((item) => item.url === button.dataset.favoriteUrl);
@@ -542,6 +550,7 @@ function render() {
     button.classList.toggle("is-saved", saved);
   });
   renderTracker();
+  applyLanguage();
 }
 
 
