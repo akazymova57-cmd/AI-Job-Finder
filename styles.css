@@ -271,3 +271,22 @@ footer {
   .tracker-item { grid-template-columns: 1fr; }
   .tracker-item a { justify-self: start; }
 }
+
+
+/* Wide desktop layout */
+@media (min-width: 1100px) {
+  .shell { max-width: 1600px; padding-left: 36px; padding-right: 36px; }
+  .topbar { padding-left: max(36px, calc((100% - 1528px) / 2)); padding-right: max(36px, calc((100% - 1528px) / 2)); }
+  .hero { text-align: left; }
+  .searchbar { margin-left: 0; max-width: 900px; }
+  .filters, .extra-filters { justify-content: flex-start; }
+  .jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .job-card { min-height: 270px; padding: 24px; }
+  .job-card h3 { font-size: 20px; }
+  .company, .meta { font-size: 14px; }
+  .badge { font-size: 12px; }
+}
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.language-toggle { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--panel); color: var(--text); font-weight: 700; }
+.report-link { color: var(--warning); font-size: 11px; text-decoration: underline; }
+@media (max-width: 700px) { .header-actions { gap: 7px; } .live-label { font-size: 10px; } }
