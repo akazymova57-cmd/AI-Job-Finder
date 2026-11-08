@@ -20,6 +20,8 @@ jobs:
           node-version: "22"
       - name: Fetch and validate vacancies
         run: node scripts/update-jobs.mjs
+      - name: Validate generated snapshot
+        run: node scripts/validate-jobs.mjs
       - name: Commit updated data
         run: |
           if git diff --quiet -- data/jobs.json; then
