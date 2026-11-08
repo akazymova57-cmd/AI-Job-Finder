@@ -81,6 +81,7 @@ window.APP_TRANSLATIONS.en = {
   "Сначала новые": "Newest first",
   "Сначала с указанной зарплатой": "Salary disclosed first",
   "Только вакансии с указанной зарплатой": "Only jobs with disclosed salary",
+  "Без опыта (скрыть вакансии с обязательным опытом)": "No experience (hide jobs requiring prior experience)",
   "Сопоставление с резюме": "Resume matching",
   "Резюме обрабатывается только в этой вкладке": "Resume is processed in this tab only",
   "Текст резюме": "Resume text",
