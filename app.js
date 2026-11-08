@@ -702,19 +702,27 @@ function setSidebarActive(element) {
   });
 }
 
-function closeSidebar() {
+function closeSidebar({ restoreFocus = false } = {}) {
+  const wasOpen = document.body.classList.contains("sidebar-open");
   document.body.classList.remove("sidebar-open");
   $("sidebar-open")?.setAttribute("aria-expanded", "false");
+  if (restoreFocus && wasOpen) $("sidebar-open")?.focus();
 }
 
-$("sidebar-open")?.addEventListener("click", () => {
+function openSidebar() {
   document.body.classList.add("sidebar-open");
-  $("sidebar-open").setAttribute("aria-expanded", "true");
-});
-$("sidebar-close")?.addEventListener("click", closeSidebar);
-$("sidebar-backdrop")?.addEventListener("click", closeSidebar);
+  $("sidebar-open")?.setAttribute("aria-expanded", "true");
+  $("sidebar-close")?.focus();
+}
+
+$("sidebar-open")?.addEventListener("click", openSidebar);
+$("sidebar-close")?.addEventListener("click", () => closeSidebar({ restoreFocus: true }));
+$("sidebar-backdrop")?.addEventListener("click", () => closeSidebar({ restoreFocus: true }));
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeSidebar();
+  if (event.key === "Escape") closeSidebar({ restoreFocus: true });
+});
+window.matchMedia("(min-width: 1024px)").addEventListener("change", (event) => {
+  if (event.matches) closeSidebar();
 });
 
 $("sidebar-nav")?.addEventListener("click", (event) => {
