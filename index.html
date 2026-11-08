@@ -112,6 +112,17 @@
               </select>
             </label>
           </div>
+          <section class="quick-filters" aria-labelledby="quick-filters-title">
+            <h3 id="quick-filters-title">Быстрые фильтры</h3>
+            <label class="quick-filter-card no-experience-filter">
+              <input id="no-experience-only" type="checkbox">
+              <span class="quick-filter-copy"><strong>Без опыта</strong><small>Скрыть вакансии, где опыт обязателен</small></span>
+            </label>
+            <label class="quick-filter-card">
+              <input id="salary-only" type="checkbox">
+              <span class="quick-filter-copy"><strong>Указана зарплата</strong><small>Показывать вакансии с опубликованной оплатой</small></span>
+            </label>
+          </section>
           <div class="extra-filters">
             <label class="sort-label" for="sort">Сортировка
               <select id="sort">
@@ -124,8 +135,6 @@
                 <option value="salary">Сначала с указанной зарплатой</option>
               </select>
             </label>
-            <label class="checkbox-label"><input id="salary-only" type="checkbox"> Только вакансии с указанной зарплатой</label>
-            <label class="checkbox-label"><input id="no-experience-only" type="checkbox"> Без опыта (скрыть вакансии с обязательным опытом)</label>
           </div>
         </aside>
 
