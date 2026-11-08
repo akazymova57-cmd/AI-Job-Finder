@@ -9,7 +9,9 @@ const state = {
   resumeSkills: [],
   sourceStatus: "",
   loading: false,
-  savedJobs: readSavedJobs()
+  savedJobs: readSavedJobs(),
+  currentPage: 1,
+  pageSize: 10
 };
 
 const $ = (id) => document.getElementById(id);
@@ -115,6 +117,7 @@ function extractSkills(value) {
 }
 
 function updateResumeProfile() {
+  state.currentPage = 1;
   state.resumeText = $("resume-text").value;
   state.resumeSkills = extractSkills(state.resumeText);
 
@@ -290,6 +293,60 @@ function passesSafetyChecks(job) {
   return !APP_CONFIG.fraudPatterns.some((pattern) => pattern.test(text));
 }
 
+function renderPagination(totalItems, totalPages, startIndex, endIndex) {
+  const nav = $("pagination");
+  if (!nav) return;
+  nav.replaceChildren();
+  nav.hidden = totalPages <= 1;
+  if (totalPages <= 1) return;
+
+  const addButton = (label, page, options = {}) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "page-button" + (options.active ? " is-active" : "");
+    button.textContent = label;
+    button.dataset.page = String(page);
+    button.disabled = Boolean(options.disabled);
+    if (options.active) button.setAttribute("aria-current", "page");
+    button.setAttribute("aria-label", options.ariaLabel || ("Страница " + page));
+    nav.append(button);
+  };
+
+  addButton(currentLanguage === "ru" ? "← Назад" : "← Previous", state.currentPage - 1, {
+    disabled: state.currentPage === 1,
+    ariaLabel: currentLanguage === "ru" ? "Предыдущая страница" : "Previous page"
+  });
+
+  const first = Math.max(1, state.currentPage - 2);
+  const last = Math.min(totalPages, state.currentPage + 2);
+  if (first > 1) {
+    addButton("1", 1, { active: state.currentPage === 1 });
+    if (first > 2) {
+      const dots = document.createElement("span");
+      dots.className = "page-ellipsis";
+      dots.textContent = "…";
+      nav.append(dots);
+    }
+  }
+  for (let page = first; page <= last; page += 1) {
+    addButton(String(page), page, { active: page === state.currentPage });
+  }
+  if (last < totalPages) {
+    if (last < totalPages - 1) {
+      const dots = document.createElement("span");
+      dots.className = "page-ellipsis";
+      dots.textContent = "…";
+      nav.append(dots);
+    }
+    addButton(String(totalPages), totalPages, { active: state.currentPage === totalPages });
+  }
+
+  addButton(currentLanguage === "ru" ? "Далее →" : "Next →", state.currentPage + 1, {
+    disabled: state.currentPage === totalPages,
+    ariaLabel: currentLanguage === "ru" ? "Следующая страница" : "Next page"
+  });
+}
+
 function render() {
   const query = state.query.trim();
   const location = $("location").value;
@@ -331,6 +388,12 @@ function render() {
     return relevanceDifference || jobDate(b) - jobDate(a);
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+  state.currentPage = Math.min(Math.max(1, state.currentPage), totalPages);
+  const startIndex = (state.currentPage - 1) * state.pageSize;
+  const endIndex = Math.min(startIndex + state.pageSize, filtered.length);
+  const pageJobs = filtered.slice(startIndex, endIndex);
+
   const container = $("jobs");
   container.replaceChildren();
 
@@ -342,7 +405,7 @@ function render() {
       : "Пока нет загруженных вакансий. Попробуй обновить список позже.";
     container.append(empty);
   } else {
-    filtered.forEach((job) => {
+    pageJobs.forEach((job) => {
       const card = document.createElement("article");
       card.className = "job-card";
 
@@ -502,7 +565,10 @@ function render() {
     return counts;
   }, {});
   const sourceSummary = Object.entries(sourceCounts).map(([source, count]) => source + ": " + count).join(" · ");
-  const countText = "Показано вакансий: " + filtered.length + " из " + state.jobs.length + "." + (sourceSummary ? " По источникам: " + sourceSummary + "." : "");
+  const countText = filtered.length
+    ? "Показано вакансий: " + (startIndex + 1) + "–" + endIndex + " из " + filtered.length + " (всего в базе " + state.jobs.length + ")." + (sourceSummary ? " По источникам: " + sourceSummary + "." : "")
+    : "Показано вакансий: 0 из " + state.jobs.length + ".";
+  renderPagination(filtered.length, totalPages, startIndex, endIndex);
   $("status").textContent = (state.sourceStatus ? state.sourceStatus + " " : "") + countText;
 
   container.querySelectorAll("[data-favorite-url]").forEach((button) => {
@@ -600,6 +666,16 @@ function renderTracker() {
   });
 }
 
+$("pagination")?.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-page]");
+  if (!button || button.disabled) return;
+  const nextPage = Number(button.dataset.page);
+  if (!Number.isInteger(nextPage) || nextPage < 1) return;
+  state.currentPage = nextPage;
+  render();
+  $("jobs").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
 $("jobs").addEventListener("click", (event) => {
   const button = event.target.closest("[data-favorite-url]");
   if (!button) return;
@@ -624,15 +700,22 @@ $("jobs").addEventListener("click", (event) => {
 
 $("search-form").addEventListener("submit", (event) => {
   event.preventDefault();
+  state.currentPage = 1;
   state.query = $("query").value;
   render();
 });
 
 ["location", "level", "type", "sort", "salary-only"].forEach((id) => {
-  $(id).addEventListener("change", render);
+  $(id).addEventListener("change", () => {
+    state.currentPage = 1;
+    render();
+  });
 });
 
-$("refresh").addEventListener("click", () => loadJobs(true));
+$("refresh").addEventListener("click", () => {
+  state.currentPage = 1;
+  loadJobs(true);
+});
 
 $("resume-text").addEventListener("input", () => {
   $("resume-file-name").textContent = "";
