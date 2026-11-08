@@ -229,6 +229,7 @@ function locationMatches(job, filter) {
     const scope = value
       .replace(/[()[\]{}]/g, " ")
       .replace(/[|,:;/]+/g, " ")
+      .replace(/[-–—]+/g, " ")
       .replace(/\bremote(?:\s+work)?\b/gi, " ")
       .replace(/\s+/g, " ")
       .trim();
