@@ -14,23 +14,10 @@
 <body>
   <header class="topbar">
     <a class="brand" href="./"><span class="brand-mark">AI</span><span>AI Job Finder</span></a>
-    <nav id="sidebar-nav" class="primary-nav" aria-label="Основная навигация">
-      <button class="sidebar-link is-active" type="button" data-view="all" aria-current="page">Все вакансии</button>
-      <button class="sidebar-link" type="button" data-view="today">Новые сегодня</button>
-      <button class="sidebar-link" type="button" data-category="support">Поддержка</button>
-      <button class="sidebar-link" type="button" data-category="admin">Администрирование</button>
-      <button class="sidebar-link" type="button" data-category="marketing">Маркетинг</button>
-      <button class="sidebar-link" type="button" data-category="writing">Тексты</button>
-      <button class="sidebar-link" type="button" data-category="it">IT</button>
-      <button class="sidebar-link" type="button" data-view="favorites">Избранное</button>
-      <button class="sidebar-link" type="button" data-source="jobicy">Jobicy</button>
-      <button class="sidebar-link" type="button" data-source="himalayas">Himalayas</button>
-      <button class="sidebar-link" type="button" data-source="weworkremotely">WWR</button>
-      <button class="sidebar-link" type="button" data-source="remoteok">Remote OK</button>
-      <a class="sidebar-link" href="#about" data-view="about">О проекте</a>
-    </nav>
+    <button id="sidebar-open" class="menu-toggle" type="button" aria-label="Открыть меню" aria-controls="sidebar-nav" aria-expanded="false"><span></span><span></span><span></span></button>
     <div class="header-actions"><button id="language-toggle" class="language-toggle" type="button" aria-label="Switch language">RU / EN</button><span class="live-label"><i></i> LIVE JOB FEED</span></div>
   </header>
+  <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Закрыть меню"></button>
 
   <div class="app-layout">
     <main class="shell">
@@ -71,7 +58,31 @@
       </section>
 
       <div class="discovery-layout">
-        <aside class="filter-sidebar" aria-label="Фильтры вакансий">
+        <aside class="filter-sidebar" aria-label="Навигация и фильтры">
+          <div class="sidebar-heading-row"><h2 class="sidebar-heading">Навигация</h2><button id="sidebar-close" class="sidebar-close" type="button" aria-label="Закрыть меню">×</button></div>
+          <nav id="sidebar-nav" class="sidebar-menu" aria-label="Разделы и источники">
+            <div class="sidebar-group"><p class="sidebar-group-title">Вакансии</p>
+              <button class="sidebar-link is-active" type="button" data-view="all" aria-current="page">Все вакансии</button>
+              <button class="sidebar-link" type="button" data-view="today">Новые сегодня</button>
+              <button class="sidebar-link" type="button" data-view="favorites">Избранное</button>
+            </div>
+            <div class="sidebar-group"><p class="sidebar-group-title">Категории</p>
+              <button class="sidebar-link" type="button" data-category="support">Поддержка</button>
+              <button class="sidebar-link" type="button" data-category="admin">Администрирование</button>
+              <button class="sidebar-link" type="button" data-category="marketing">Маркетинг</button>
+              <button class="sidebar-link" type="button" data-category="writing">Тексты</button>
+              <button class="sidebar-link" type="button" data-category="it">IT</button>
+            </div>
+            <div class="sidebar-group"><p class="sidebar-group-title">Источники</p>
+              <button class="sidebar-link" type="button" data-source="jobicy">Jobicy</button>
+              <button class="sidebar-link" type="button" data-source="himalayas">Himalayas</button>
+              <button class="sidebar-link" type="button" data-source="weworkremotely">We Work Remotely</button>
+              <button class="sidebar-link" type="button" data-source="remoteok">Remote OK</button>
+            </div>
+            <a class="sidebar-link sidebar-about" href="#about" data-view="about">О проекте</a>
+          </nav>
+          <div class="sidebar-divider"></div>
+          <h2 class="filter-heading">Фильтры</h2>
           <div class="filters">
             <label>География
               <select id="location">
