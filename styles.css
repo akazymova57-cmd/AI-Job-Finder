@@ -544,7 +544,7 @@ footer {
   gap: 10px;
   width: min(100%, 1920px);
   margin: 0 auto;
-  padding: 22px 32px;
+  padding: 22px 32px 22px 292px;
   overflow-wrap: anywhere;
 }
 table { width: 100%; max-width: 100%; border-collapse: collapse; }
