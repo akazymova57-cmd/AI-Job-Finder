@@ -57,3 +57,44 @@ test.describe("responsive layout", () => {
     }
   });
 });
+
+
+test("sidebar category strictly filters vacancies and clears stale search filters", async ({ page }) => {
+  const today = new Date().toISOString();
+  await page.addInitScript(({ today }) => {
+    localStorage.setItem("aijf_multi_source_cache_v2", JSON.stringify({
+      savedAt: Date.now(),
+      jobs: [
+        {
+          title: "Customer Support Engineer",
+          company_name: "Support Co",
+          description: "Resolve customer issues.",
+          tags: ["customer support", "technical support"],
+          publication_date: today,
+          url: "https://jobicy.com/jobs/1001",
+          source_id: "jobicy"
+        },
+        {
+          title: "Operations Manager",
+          company_name: "Operations Co",
+          description: "Works with the customer support team.",
+          tags: ["operations"],
+          publication_date: today,
+          url: "https://jobicy.com/jobs/1002",
+          source_id: "jobicy"
+        }
+      ]
+    }));
+  }, { today });
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  await page.locator("#query").fill("this search should return nothing");
+  await page.locator(".sidebar-group-title").filter({ hasText: "Категории" }).click();
+  await page.locator('#sidebar-nav [data-category="support"]').click();
+
+  await expect(page.locator("#jobs .job-card")).toHaveCount(1);
+  await expect(page.locator("#jobs .job-card h3")).toHaveText("Customer Support Engineer");
+  await expect(page.locator("#query")).toHaveValue("");
+  await expect(page.locator("#results-section")).toBeInViewport();
+});
