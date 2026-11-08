@@ -29,5 +29,6 @@ jobs:
           node --check translations/en.js
           node --check translations/ru.js
           node --check scripts/update-jobs.mjs
+          node -e "const c = require('./config.js'); if (!c.sources.remotive.apiUrl || !c.fraudPatterns.length) process.exit(1)"
       - name: Validate vacancy snapshot JSON
         run: node -e "JSON.parse(require('node:fs').readFileSync('data/jobs.json', 'utf8')); console.log('jobs.json is valid JSON')"
