@@ -30,5 +30,7 @@ jobs:
           node --check translations/ru.js
           node --check scripts/update-jobs.mjs
           node -e "const c = require('./config.js'); if (!c.sources.remotive.apiUrl || !c.fraudPatterns.length) process.exit(1)"
-      - name: Validate vacancy snapshot
-        run: node scripts/validate-jobs.mjs
+      - name: Fetch live sources and validate vacancy snapshot
+        run: |
+          node scripts/update-jobs.mjs
+          node scripts/validate-jobs.mjs
