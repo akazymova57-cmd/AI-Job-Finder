@@ -110,7 +110,7 @@ function containsTerm(text, term) {
 
   const escaped = normalizedTerm
     .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\s+/g, "\\s+");
+    .replace(/\s+/g, "\s+");
   return new RegExp("(^|[^a-z0-9])" + escaped + "(?=$|[^a-z0-9])", "i").test(text);
 }
 
@@ -503,8 +503,8 @@ function render() {
 
     // Experience-focused sorting promotes matching roles without hiding other jobs.
     if (sortMode === "no-experience") {
-      const aNoExperience = /no experience|without experience|no prior experience|0\\s*[-–]?\\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(a));
-      const bNoExperience = /no experience|without experience|no prior experience|0\\s*[-–]?\\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(b));
+      const aNoExperience = /no experience|without experience|no prior experience|0\s*[-–]?\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(a));
+      const bNoExperience = /no experience|without experience|no prior experience|0\s*[-–]?\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(b));
       const difference = Number(bNoExperience) - Number(aNoExperience);
       if (difference) return difference;
     }
