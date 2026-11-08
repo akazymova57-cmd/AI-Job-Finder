@@ -49,8 +49,7 @@ window.APP_TRANSLATIONS.en = {
   "Уровень не подтверждён": "Level not confirmed",
   "Переводим…": "Translating…",
   "Скрыть перевод": "Hide translation",
-  "Повторить перевод": "Retry translation"
-}
+  "Повторить перевод": "Retry translation",
   "Собираем удалённые вакансии и помогаем оценить совпадение с твоими навыками.": "We collect remote vacancies and help you assess how well they match your skills.",
   "Вставь текст резюме или загрузи файл TXT/MD. Мы выделим известные навыки и покажем, какие из них встречаются в описании вакансии.": "Paste your resume or upload a TXT/MD file. We identify known skills and show which appear in each vacancy.",
   "Резюме не добавлено. Без него вакансии сортируются по ключевому запросу, а оценка навыков не рассчитывается.": "No resume added. Jobs are sorted by keyword relevance; skill matching is unavailable.",
