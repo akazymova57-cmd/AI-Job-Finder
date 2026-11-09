@@ -166,7 +166,7 @@ function translateUiValue(value, dictionary) {
 
 function applyLanguage() {
   const dictionary = (window.APP_TRANSLATIONS && window.APP_TRANSLATIONS[currentLanguage]) || {};
-  const protectedContent = ".job-card, .tracker-item-info, #compare-table td, #compare-table th:not(:first-child), .translation-output";
+  const protectedContent = ".job-card .company, .job-card h3, .job-card .meta, .job-card .job-description-preview, .job-card .job-source-tag, .job-card .salary-value, .job-card .translation-output, .tracker-item-info, #compare-table td, #compare-table th:not(:first-child)";
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
@@ -1261,7 +1261,7 @@ function render() {
       badges.append(levelBadge);
       (Array.isArray(job.tags) ? job.tags : []).slice(0, 2).forEach((tag) => {
         const badge = document.createElement("span");
-        badge.className = "badge";
+        badge.className = "badge job-source-tag";
         badge.textContent = tag;
         badges.append(badge);
       });
@@ -1310,6 +1310,7 @@ function render() {
         const salaryBox = document.createElement("div");
         salaryBox.className = "salary-highlight";
         const salaryValue = document.createElement("strong");
+        salaryValue.className = "salary-value";
         salaryValue.textContent = job.salary;
         const salaryLabel = document.createElement("span");
         salaryLabel.textContent = "Зарплата из объявления";
