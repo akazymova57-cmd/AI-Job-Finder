@@ -125,6 +125,13 @@ test("language switch restores the original copy and translates the full rendere
   assert.match(en, /"Без обязательного английского": "No mandatory English"/);
 });
 
+test("active filter chips expose and reset non-default sorting", () => {
+  assert.ok(app.includes('if ($("sort").value !== "match") add("sort", "Сортировка: " + ($("sort").selectedOptions[0]?.textContent || "Выбрана"));'));
+  assert.ok(app.includes('} else if (key === "sort") {\n    $("sort").value = "match";'));
+  assert.ok(app.includes('const signature = JSON.stringify(filters)'));
+  assert.ok(app.includes('dataset.removeFilter = key'));
+});
+
 test("UI translation never rewrites employer-provided vacancy content", () => {
   assert.ok(app.includes('const protectedContent = ".job-card .company, .job-card h3, .job-card .meta, .job-card .job-description-preview, .job-card .job-source-tag, .job-card .salary-value, .job-card .translation-output, .tracker-item-info, #compare-table td, #compare-table th:not(:first-child)";'));
   assert.match(app, /parent\.closest\(protectedContent\)/);
