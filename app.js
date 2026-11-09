@@ -1,6 +1,7 @@
 const CACHE_KEY = "aijf_multi_source_cache_v2";
 const CACHE_TTL = 6 * 60 * 60 * 1000;
 const TRACKER_KEY = "aijf_saved_jobs_v1";
+const SEARCHES_KEY = "aijf_saved_searches_v1";
 
 const state = {
   jobs: [],
@@ -10,6 +11,7 @@ const state = {
   sourceStatus: "",
   loading: false,
   savedJobs: readSavedJobs(),
+  savedSearches: readSavedSearches(),
   currentPage: 1,
   pageSize: 10,
   quickCategory: "",
@@ -550,6 +552,148 @@ function renderPagination(totalItems, totalPages, startIndex, endIndex) {
   });
 }
 
+function readSavedSearches() {
+  try {
+    const value = JSON.parse(localStorage.getItem(SEARCHES_KEY) || "[]");
+    return Array.isArray(value) ? value.filter((item) => item && typeof item.id === "string" && item.filters && typeof item.filters === "object").slice(0, 6) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function persistSavedSearches() {
+  try { localStorage.setItem(SEARCHES_KEY, JSON.stringify(state.savedSearches.slice(0, 6))); } catch (_) {}
+}
+
+function currentSearchSnapshot() {
+  return {
+    query: state.query,
+    location: $("location").value,
+    level: $("level").value,
+    type: $("type").value,
+    sort: $("sort").value,
+    salaryOnly: $("salary-only").checked,
+    noExperienceOnly: $("no-experience-only").checked,
+    noEnglishRequiredOnly: $("no-english-required-only").checked,
+    noDegreeRequiredOnly: $("no-degree-required-only").checked,
+    difficulty: state.difficultyFilter,
+    category: state.quickCategory,
+    source: state.quickSource,
+    view: state.quickView
+  };
+}
+
+function searchSnapshotLabel(filters) {
+  if (filters.query) return filters.query.slice(0, 34);
+  if (filters.category) return ({ support: "Поддержка", admin: "Администрирование", marketing: "Маркетинг", writing: "Тексты", it: "IT", design: "Дизайн" })[filters.category] || "Поиск по категории";
+  if (filters.source) return ({ jobicy: "Jobicy", himalayas: "Himalayas", weworkremotely: "We Work Remotely", remoteok: "Remote OK" })[filters.source] || "Поиск по источнику";
+  if (filters.noExperienceOnly) return "Вакансии без опыта";
+  if (filters.salaryOnly) return "С указанной зарплатой";
+  if (filters.difficulty !== "all") return "Сложность: " + filters.difficulty;
+  if (filters.location !== "worldwide") return "География: " + $("location").selectedOptions[0]?.textContent;
+  return "Мой поиск";
+}
+
+function renderSavedSearches() {
+  const container = $("saved-searches");
+  if (!container) return;
+  container.replaceChildren();
+  if (!state.savedSearches.length) {
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+  const heading = document.createElement("span");
+  heading.className = "saved-searches-label";
+  heading.textContent = "СОХРАНЁННЫЕ ПОИСКИ";
+  container.append(heading);
+  state.savedSearches.forEach((item) => {
+    const group = document.createElement("span");
+    group.className = "saved-search-item";
+    const apply = document.createElement("button");
+    apply.type = "button";
+    apply.className = "saved-search-apply";
+    apply.dataset.applySavedSearch = item.id;
+    apply.textContent = item.name;
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "saved-search-remove";
+    remove.dataset.removeSavedSearch = item.id;
+    remove.setAttribute("aria-label", "Удалить сохранённый поиск: " + item.name);
+    remove.textContent = "×";
+    group.append(apply, remove);
+    container.append(group);
+  });
+}
+
+function applySavedSearch(id) {
+  const item = state.savedSearches.find((saved) => saved.id === id);
+  if (!item) return;
+  const f = item.filters;
+  state.query = String(f.query || "");
+  $("query").value = state.query;
+  $("location").value = ["worldwide", "any", "europe", "americas", "asia"].includes(f.location) ? f.location : "worldwide";
+  $("level").value = ["all", "entry", "intern", "experienced"].includes(f.level) ? f.level : "all";
+  $("type").value = ["all", "full_time", "part_time", "contract", "internship"].includes(f.type) ? f.type : "all";
+  $("sort").value = ["match", "no-experience", "entry", "intern", "easy", "newest", "salary"].includes(f.sort) ? f.sort : "match";
+  $("salary-only").checked = Boolean(f.salaryOnly);
+  $("no-experience-only").checked = Boolean(f.noExperienceOnly);
+  $("no-english-required-only").checked = Boolean(f.noEnglishRequiredOnly);
+  $("no-degree-required-only").checked = Boolean(f.noDegreeRequiredOnly);
+  state.difficultyFilter = ["all", "easy", "medium", "hard"].includes(f.difficulty) ? f.difficulty : "all";
+  state.quickCategory = String(f.category || "");
+  state.quickSource = String(f.source || "");
+  state.quickView = ["all", "today", "favorites", "filtered"].includes(f.view) ? f.view : "all";
+  document.querySelectorAll("[data-difficulty-filter]").forEach((button) => {
+    const active = button.dataset.difficultyFilter === state.difficultyFilter;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  const activeNav = [...document.querySelectorAll("#sidebar-nav .sidebar-link")].find((link) =>
+    (state.quickCategory && link.dataset.category === state.quickCategory) ||
+    (state.quickSource && link.dataset.source === state.quickSource) ||
+    (state.quickView !== "filtered" && state.quickView !== "all" && link.dataset.view === state.quickView)
+  );
+  setSidebarActive(activeNav || document.querySelector('#sidebar-nav [data-view="all"]'));
+  state.currentPage = 1;
+  render();
+}
+
+document.addEventListener("click", (event) => {
+  const save = event.target.closest("[data-save-search]");
+  if (save) {
+    if (state.savedSearches.length >= 6) {
+      save.textContent = "Лимит 6 поисков";
+      return;
+    }
+    const filters = currentSearchSnapshot();
+    const signature = JSON.stringify(filters);
+    if (state.savedSearches.some((item) => JSON.stringify(item.filters) === signature)) {
+      save.textContent = "Уже сохранён";
+      return;
+    }
+    const id = "search-" + Date.now().toString(36);
+    const name = searchSnapshotLabel(filters);
+    state.savedSearches.unshift({ id, name, filters });
+    state.savedSearches = state.savedSearches.slice(0, 6);
+    persistSavedSearches();
+    renderSavedSearches();
+    save.textContent = "Сохранено";
+    return;
+  }
+  const apply = event.target.closest("[data-apply-saved-search]");
+  if (apply) {
+    applySavedSearch(apply.dataset.applySavedSearch);
+    return;
+  }
+  const remove = event.target.closest("[data-remove-saved-search]");
+  if (remove) {
+    state.savedSearches = state.savedSearches.filter((item) => item.id !== remove.dataset.removeSavedSearch);
+    persistSavedSearches();
+    renderSavedSearches();
+  }
+});
+
 function renderActiveFilters() {
   const container = $("active-filters");
   if (!container) return;
@@ -608,6 +752,13 @@ function renderActiveFilters() {
   clear.dataset.removeFilter = "all";
   clear.textContent = currentLanguage === "ru" ? "Сбросить всё" : "Clear all";
   container.append(clear);
+
+  const save = document.createElement("button");
+  save.type = "button";
+  save.className = "active-filters-save";
+  save.dataset.saveSearch = "true";
+  save.textContent = "＋ Сохранить поиск";
+  container.append(save);
 }
 
 document.addEventListener("click", (event) => {
@@ -956,6 +1107,7 @@ function render() {
     ? "Показано вакансий: " + (startIndex + 1) + "–" + endIndex + " из " + filtered.length + " (всего в базе " + state.jobs.length + ")." + (sourceSummary ? " По источникам: " + sourceSummary + "." : "")
     : "Показано вакансий: 0 из " + state.jobs.length + ".";
   renderActiveFilters();
+  renderSavedSearches();
   renderPagination(filtered.length, totalPages, startIndex, endIndex);
   $("status").textContent = (state.sourceStatus ? state.sourceStatus + " " : "") + countText;
 
