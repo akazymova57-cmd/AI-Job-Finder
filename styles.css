@@ -226,3 +226,23 @@ footer a{color:#236d58}
 @media(prefers-reduced-motion:reduce){
   .filter-sidebar,.sidebar-backdrop,.sidebar-menu .sidebar-link,.job-card{transition:none!important}
 }
+
+
+/* Neutralize legacy blue-gray component defaults */
+.search-icon,.file-name,.privacy-footnote,.company,.meta,.insight-label,
+.card-bottom .match,.source-note,.translation-output{color:#7b877d}
+.ghost-button,.text-button,.favorite-button,.page-button{color:#58665b}
+.upload-button{
+  border-color:#d1e4d7;background:#e8f3ee;color:#1f6b5b
+}
+.upload-button:hover{border-color:#a9cfb8;background:#eff7f0;color:#1f6b5b}
+.translate-button{
+  border-color:#d1e4d7;background:#f3f8f2;color:#236d58
+}
+.translate-button:hover{border-color:#a9cfb8;background:#e8f3ee;color:#1f6b5b}
+.source-note a{color:#236d58}
+.job-card:hover{border-color:#b7d5c4}
+#resume-text::placeholder{color:#8d988e}
+.page-button{border-color:#dfe5dc;background:#fff}
+.ghost-button{border-color:#dfe5dc;background:#fff}
+.text-button{color:#58665b}
