@@ -96,9 +96,13 @@ function hasMandatoryExperienceRequirement(job) {
   const sections = description.split(/[.!?;\n]+/).map(cleanText).filter(Boolean);
   const yearsPattern = /(?:at least|minimum(?: of)?|more than|over)\s*\d+\s*(?:years?|yrs?)|\b\d+\s*\+\s*(?:years?|yrs?)|\b\d+\s*(?:-|–|to)\s*\d+\s*(?:years?|yrs?)\b|\b\d+\s*(?:years?|yrs?)\s+(?:of )?experience|опыт\s+от\s+\d+\s+лет|не менее\s+\d+\s+лет/i;
   const optionalPattern = /preferred|preferably|nice to have|desired|желательно|желателен|будет плюсом/i;
+  const noExperiencePattern = /no (?:prior )?experience(?: is)? (?:required|needed)|no prior experience|without (?:prior )?experience|experience (?:is )?not required|без опыта|опыт не требуется/i;
   const mandatoryPattern = /(?:must have|required|requirement is|обязателен|обязательно|требуется)\s+(?:at least\s+)?(?:prior\s+)?experience|experience\s+(?:is\s+)?(?:required|mandatory)|опыт работы\s+(?:обязателен|обязательно)|требуется опыт работы/i;
 
   return sections.some((section) => {
+    // "No experience required" contains the words "experience required";
+    // explicitly handle the negation before testing mandatory wording.
+    if (noExperiencePattern.test(section)) return false;
     const yearMatches = [...section.matchAll(new RegExp(yearsPattern.source, "gi"))];
     if (yearMatches.length) {
       return yearMatches.some((match) => {
