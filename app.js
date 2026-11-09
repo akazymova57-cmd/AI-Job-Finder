@@ -545,6 +545,114 @@ function renderPagination(totalItems, totalPages, startIndex, endIndex) {
   });
 }
 
+function renderActiveFilters() {
+  const container = $("active-filters");
+  if (!container) return;
+  container.replaceChildren();
+
+  const active = [];
+  const add = (key, label) => active.push({ key, label });
+  if (state.query.trim()) add("query", "Поиск: " + state.query.trim());
+  if ($("location").value !== "worldwide") add("location", $("location").selectedOptions[0]?.textContent || "География");
+  if ($("level").value !== "all") add("level", $("level").selectedOptions[0]?.textContent || "Уровень");
+  if ($("type").value !== "all") add("type", $("type").selectedOptions[0]?.textContent || "Занятость");
+  if ($("no-experience-only").checked) add("no-experience-only", "Без обязательного опыта");
+  if ($("salary-only").checked) add("salary-only", "С зарплатой");
+  if ($("no-english-required-only").checked) add("no-english-required-only", "Без обязательного английского");
+  if ($("no-degree-required-only").checked) add("no-degree-required-only", "Без обязательного диплома");
+  if (state.difficultyFilter !== "all") {
+    const labels = { easy: "Лёгкая сложность", medium: "Средняя сложность", hard: "Высокая сложность" };
+    add("difficulty", labels[state.difficultyFilter] || "Сложность");
+  }
+  if (state.quickCategory) {
+    const labels = { support: "Поддержка", admin: "Администрирование", marketing: "Маркетинг", writing: "Тексты", it: "IT" };
+    add("category", labels[state.quickCategory] || "Категория");
+  }
+  if (state.quickSource) {
+    const labels = { jobicy: "Jobicy", himalayas: "Himalayas", weworkremotely: "We Work Remotely", remoteok: "Remote OK" };
+    add("source", labels[state.quickSource] || "Источник");
+  }
+  if (state.quickView === "today") add("today", "Новые сегодня");
+  if (state.quickView === "favorites") add("favorites", "Избранное");
+
+  if (!active.length) {
+    container.hidden = true;
+    return;
+  }
+
+  container.hidden = false;
+  const label = document.createElement("span");
+  label.className = "active-filters-label";
+  label.textContent = currentLanguage === "ru" ? "АКТИВНЫЕ ФИЛЬТРЫ" : "ACTIVE FILTERS";
+  container.append(label);
+
+  active.forEach(({ key, label: value }) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "active-filter-chip";
+    chip.dataset.removeFilter = key;
+    chip.setAttribute("aria-label", (currentLanguage === "ru" ? "Убрать фильтр: " : "Remove filter: ") + value);
+    chip.innerHTML = "<span></span><span aria-hidden=\"true\">×</span>";
+    chip.firstElementChild.textContent = value;
+    container.append(chip);
+  });
+
+  const clear = document.createElement("button");
+  clear.type = "button";
+  clear.className = "active-filters-clear";
+  clear.dataset.removeFilter = "all";
+  clear.textContent = currentLanguage === "ru" ? "Сбросить всё" : "Clear all";
+  container.append(clear);
+}
+
+document.addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-remove-filter]");
+  if (!chip) return;
+  const key = chip.dataset.removeFilter;
+  if (key === "all") {
+    resetSearchFilters();
+  } else if (key === "query") {
+    $("query").value = "";
+    state.query = "";
+  } else if (["location", "level", "type"].includes(key)) {
+    const defaults = { location: "worldwide", level: "all", type: "all" };
+    $(key).value = defaults[key];
+  } else if (["salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].includes(key)) {
+    $(key).checked = false;
+  } else if (key === "difficulty") {
+    state.difficultyFilter = "all";
+    document.querySelectorAll("[data-difficulty-filter]").forEach((button) => {
+      const active = button.dataset.difficultyFilter === "all";
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  } else if (key === "category") {
+    state.quickCategory = "";
+    state.quickView = state.quickSource ? "filtered" : "all";
+  } else if (key === "source") {
+    state.quickSource = "";
+    state.quickView = state.quickCategory ? "filtered" : "all";
+  } else if (key === "today" || key === "favorites") {
+    state.quickView = "all";
+  }
+  state.currentPage = 1;
+  if (key !== "all") {
+    const activeNav = document.querySelector("#sidebar-nav .sidebar-link.is-active");
+    if (activeNav && ((key === "category" && activeNav.dataset.category) || (key === "source" && activeNav.dataset.source) || (["today", "favorites"].includes(key) && activeNav.dataset.view === key))) {
+      activeNav.classList.remove("is-active");
+      activeNav.removeAttribute("aria-current");
+    }
+  } else {
+    document.querySelectorAll("#sidebar-nav .sidebar-link").forEach((item) => {
+      const active = item.dataset.view === "all";
+      item.classList.toggle("is-active", active);
+      if (active) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    });
+  }
+  render();
+});
+
 function render() {
   const query = state.query.trim();
   const location = $("location").value;
@@ -840,6 +948,7 @@ function render() {
   const countText = filtered.length
     ? "Показано вакансий: " + (startIndex + 1) + "–" + endIndex + " из " + filtered.length + " (всего в базе " + state.jobs.length + ")." + (sourceSummary ? " По источникам: " + sourceSummary + "." : "")
     : "Показано вакансий: 0 из " + state.jobs.length + ".";
+  renderActiveFilters();
   renderPagination(filtered.length, totalPages, startIndex, endIndex);
   $("status").textContent = (state.sourceStatus ? state.sourceStatus + " " : "") + countText;
 
