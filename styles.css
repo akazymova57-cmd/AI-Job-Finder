@@ -335,3 +335,49 @@ footer a{color:#236d58}
 @media(prefers-reduced-motion:reduce){
   .quick-filter-card{transition:none!important}
 }
+
+/* Subtle command center and layout switch */
+.results-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+.command-trigger{display:inline-flex;align-items:center;gap:9px;min-height:38px;padding:7px 11px;border:1px solid #dfe5dc;border-radius:10px;background:#fff;color:#526157;font-size:10px;font-weight:700;cursor:pointer;transition:border-color .16s ease,background .16s ease}
+.command-trigger:hover{border-color:#a9cfb8;background:#f8fbf8}
+.command-trigger-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:7px;background:#edf5ef;color:#236d58;font-size:14px}
+.command-trigger kbd,.command-footer kbd,.command-item kbd{padding:3px 6px;border:1px solid #e3e9e2;border-radius:5px;background:#f7f9f6;color:#879188;font:600 9px 'DM Sans',sans-serif}
+.view-switch{display:flex;align-items:center;gap:4px;padding:3px;border:1px solid #e3e9e2;border-radius:10px;background:#f7f9f6}
+.view-button{display:grid;place-items:center;width:31px;height:29px;border:0;border-radius:7px;background:transparent;color:#7b877d;font-size:16px;cursor:pointer}
+.view-button.is-active{background:#fff;color:#236d58;box-shadow:0 1px 4px rgba(35,55,40,.10)}
+.jobs-grid.is-list-view{grid-template-columns:minmax(0,1fr);gap:9px}
+.jobs-grid.is-list-view .job-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.62fr);align-items:center;gap:10px 18px;padding:15px 17px}
+.jobs-grid.is-list-view .job-top,.jobs-grid.is-list-view .badges,.jobs-grid.is-list-view .salary-highlight,.jobs-grid.is-list-view .translation-output,.jobs-grid.is-list-view .translate-button,.jobs-grid.is-list-view .match-details{grid-column:1}
+.jobs-grid.is-list-view .job-insights{grid-column:2;grid-row:1 / span 3;grid-template-columns:repeat(2,minmax(0,1fr))}
+.jobs-grid.is-list-view .card-bottom{grid-column:1 / -1;display:flex;align-items:center}
+.command-dialog{width:min(560px,calc(100vw - 28px));max-width:none;max-height:min(720px,calc(100dvh - 32px));padding:0;border:1px solid #dce5dc;border-radius:18px;background:#fbfcfa;color:#25342a;box-shadow:0 28px 90px rgba(15,30,20,.28);overflow:hidden}
+.command-dialog::backdrop{background:rgba(20,30,23,.48);backdrop-filter:blur(5px)}
+.command-shell{padding:20px}
+.command-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.command-heading .eyebrow{margin-bottom:6px;color:#27866f;font-size:9px}
+.command-heading h2{margin:0;font:750 20px Manrope,sans-serif;letter-spacing:-.5px}
+.command-close{display:grid;place-items:center;width:32px;height:32px;border:1px solid #e1e8e0;border-radius:9px;background:#fff;color:#58665b;font-size:21px;cursor:pointer}
+.command-search-wrap{display:flex;align-items:center;gap:10px;padding:0 13px;border:1px solid #d9e4da;border-radius:11px;background:#fff;color:#7b877d}
+.command-search-wrap:focus-within{border-color:#91c4a7;box-shadow:0 0 0 3px rgba(39,134,111,.10)}
+.command-search-wrap span{font-size:20px}
+.command-search-wrap input{width:100%;min-height:46px;border:0;outline:0;background:transparent;color:#25342a;font-size:12px}
+.command-list{display:grid;gap:5px;max-height:min(420px,55dvh);overflow:auto;margin:13px -5px 0;padding:0 5px}
+.command-item{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:11px;width:100%;padding:10px;border:1px solid transparent;border-radius:10px;background:transparent;text-align:left;cursor:pointer}
+.command-item:hover,.command-item:focus-visible{border-color:#dce8dd;background:#f1f6f0;outline:0}
+.command-item[hidden]{display:none}
+.command-item-icon{display:grid;place-items:center;width:32px;height:32px;border:1px solid #e1e9e1;border-radius:9px;background:#fff;color:#27866f;font-size:14px}
+.command-item strong,.command-item small{display:block}
+.command-item strong{color:#344238;font-size:11px;font-weight:700}
+.command-item small{margin-top:3px;color:#879188;font-size:9px;line-height:1.4}
+.command-footer{display:flex;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #e7ece5;color:#879188;font-size:9px}
+@media(max-width:620px){
+  .results-tools{gap:8px}
+  .command-trigger{min-height:36px;padding:6px 8px;font-size:9px}
+  .command-trigger kbd{display:none}
+  .jobs-grid.is-list-view .job-card{display:flex;align-items:stretch}
+  .jobs-grid.is-list-view .job-insights{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .command-shell{padding:15px}
+  .command-heading h2{font-size:18px}
+  .command-footer{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){.command-trigger,.view-button,.command-dialog{transition:none!important}}
