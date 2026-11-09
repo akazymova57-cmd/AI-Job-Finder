@@ -7,7 +7,7 @@
   <!-- Build refresh: experience sorting 2026-11-09 -->
   <meta name="description" content="AI Job Finder — поиск международных удалённых вакансий с оценкой сложности, языка и совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
-  <link rel="stylesheet" href="styles.css?v=20261109-difficultyui2">
+  <link rel="stylesheet" href="styles.css?v=20261109-viewfix1">
   <script src="config.js"></script>
   <script src="translations/ru.js"></script>
   <script src="translations/en.js"></script>
@@ -175,8 +175,8 @@
               <span class="command-trigger-icon">⌘</span><span>Быстрые действия</span><kbd>Ctrl K</kbd>
             </button>
             <div class="view-switch" role="group" aria-label="Режим отображения вакансий">
-              <button type="button" class="view-button is-active" data-layout="grid" aria-pressed="true" aria-label="Сетка вакансий" title="Сетка">▦</button>
-              <button type="button" class="view-button" data-layout="list" aria-pressed="false" aria-label="Список вакансий" title="Список">☷</button>
+              <button type="button" class="view-button is-active" data-layout="grid" aria-pressed="true" aria-label="Показать вакансии сеткой" title="Сетка"><span class="view-button-icon" aria-hidden="true">▦</span><span>Сетка</span></button>
+              <button type="button" class="view-button" data-layout="list" aria-pressed="false" aria-label="Показать вакансии списком" title="Список"><span class="view-button-icon" aria-hidden="true">☷</span><span>Список</span></button>
             </div>
           </div>
           <section class="difficulty-filter" aria-label="Фильтр по сложности вакансий">
@@ -241,6 +241,6 @@
     </div>
   </dialog>
   <footer id="about"><span>AI Job Finder</span><span>Источники: Remote OK · Jobicy · We Work Remotely · Himalayas · <a href="https://github.com/akazymova57-cmd/AI-Job-Finder" target="_blank" rel="noopener noreferrer">GitHub проекта</a></span></footer>
-  <script src="app.js?v=20261109-difficultyui2"></script>
+  <script src="app.js?v=20261109-viewfix1"></script>
 </body>
 </html>
