@@ -1051,7 +1051,21 @@ function render() {
         badge.textContent = tag;
         badges.append(badge);
       });
+      const freshness = document.createElement("span");
+      const publishedDate = jobDate(job);
+      const ageDays = publishedDate ? Math.floor((Date.now() - publishedDate) / 86400000) : null;
+      freshness.className = "badge freshness-badge" + (ageDays === 0 ? " is-today" : ageDays !== null && ageDays <= 3 ? " is-recent" : "");
+      freshness.textContent = publishedDate ? (ageDays === 0 ? "● Сегодня" : ageDays === 1 ? "● Вчера" : ageDays <= 3 ? "● Недавно" : getFreshnessLabel(job)) : "Дата не указана";
+      badges.append(freshness);
       card.append(badges);
+
+      const descriptionPreview = cleanText(job.description || "");
+      if (descriptionPreview) {
+        const preview = document.createElement("p");
+        preview.className = "job-description-preview";
+        preview.textContent = descriptionPreview.slice(0, 210) + (descriptionPreview.length > 210 ? "…" : "");
+        card.append(preview);
+      }
 
       const details = document.createElement("details");
       details.className = "job-details";
