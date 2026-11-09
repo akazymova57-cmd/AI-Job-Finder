@@ -324,6 +324,16 @@ function getEnglishRequirement(job) {
   return "Не указан";
 }
 
+function hasExplicitEnglishRequirement(job) {
+  const text = getJobText(job);
+  return /(?:english|английск\\w*)[^.\\n]{0,80}(?:required|mandatory|fluent|advanced|proficient|excellent|strong|good command|native|C1|C2|B2|B1|intermediate|обязател|свободн|уверенн|разговорн)|(?:required|mandatory|fluent|advanced|proficient|excellent|strong|native|C1|C2|B2|B1|intermediate|обязател|свободн|уверенн|разговорн)[^.\\n]{0,80}(?:english|английск\\w*)/i.test(text);
+}
+
+function hasExplicitNoDegreeRequirement(job) {
+  const text = getJobText(job);
+  return /no degree required|degree (?:is )?not required|degree optional|without a degree|university degree not required|college degree not required|equivalent experience (?:is )?accepted|degree or equivalent experience|диплом не требуется|без высшего образования|высшее образование не обязательно|образование не требуется/i.test(text);
+}
+
 function getExperienceRequirement(job) {
   const text = getJobText(job);
   if (/no experience|without experience|entry.level|без опыта|опыт не требуется/i.test(text)) return "Без опыта";
@@ -481,7 +491,7 @@ function render() {
   const level = $("level").value;
   const type = $("type").value;
   const salaryOnly = $("salary-only").checked;
-  const noExperienceOnly = $("no-experience-only").checked;
+  const noExperienceOnly = $("no-experience-only").checked;\n  const noEnglishRequiredOnly = $("no-english-required-only").checked;\n  const noDegreeRequiredOnly = $("no-degree-required-only").checked;
 
   const filtered = state.jobs.filter((job) => {
     if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
@@ -491,7 +501,7 @@ function render() {
     if (level === "entry" && !entryPattern.test(text)) return false;
     if (level === "intern" && !internPattern.test(text)) return false;
     if (level === "experienced" && !seniorPattern.test(text)) return false;
-    if (noExperienceOnly && hasMandatoryExperienceRequirement(job)) return false;
+    if (noExperienceOnly && hasMandatoryExperienceRequirement(job)) return false;\n    if (noEnglishRequiredOnly && hasExplicitEnglishRequirement(job)) return false;\n    if (noDegreeRequiredOnly && !hasExplicitNoDegreeRequirement(job)) return false;
     if (type !== "all" && job.job_type !== type) return false;
     if (salaryOnly && !job.salary) return false;
     if (state.quickCategory && !categoryMatches(job, state.quickCategory)) return false;
@@ -1022,7 +1032,7 @@ $("search-form").addEventListener("submit", (event) => {
   render();
 });
 
-["location", "level", "type", "sort", "salary-only", "no-experience-only"].forEach((id) => {
+["location", "level", "type", "sort", "salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].forEach((id) => {
   $(id).addEventListener("change", () => {
     state.currentPage = 1;
     render();
