@@ -119,7 +119,8 @@ test("language switch restores the original copy and translates the full rendere
   assert.ok(app.includes('const nextValue = currentLanguage === "ru"'));
   assert.match(app, /render\(\);\s*applyLanguage\(\);/);
   assert.doesNotMatch(app, /location\.reload\(\)/);
-  assert.match(en, /"Сравнение вакансий": "Job comparison"/);\n  assert.match(en, /"Источники: Remote OK · Jobicy · We Work Remotely · Himalayas ·": "Sources:/);
+  assert.match(en, /"Сравнение вакансий": "Job comparison"/);
+  assert.match(en, /"Источники: Remote OK · Jobicy · We Work Remotely · Himalayas ·": "Sources:/);
   assert.match(en, /"Сетка": "Grid"/);
   assert.match(en, /"Без обязательного английского": "No mandatory English"/);
 });
