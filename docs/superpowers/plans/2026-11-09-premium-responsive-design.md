@@ -36,7 +36,8 @@
 - Test reads `styles.css` and `index.html` from the repository root.
 - Workflow executes `node --test tests/ui-regression.test.mjs`.
 
-- [ ] Add tests asserting the final theme tokens use emerald, not blue; mobile and desktop breakpoints are present; required sidebar IDs and filter IDs remain in HTML.\n- [ ] Add behavior tests proving English preferences are not treated as mandatory and degree filtering requires an explicit employer statement.
+- [ ] Add tests asserting the final theme tokens use emerald, not blue; mobile and desktop breakpoints are present; required sidebar IDs and filter IDs remain in HTML.
+- [ ] Add behavior tests proving English preferences are not treated as mandatory and degree filtering requires an explicit employer statement.
 - [ ] Run the test before implementation and confirm it fails against the old theme/layout.
 - [ ] Add the test command to the existing validation workflow.
 - [ ] Commit the test-first change.
@@ -57,7 +58,8 @@
 - [ ] Normalize desktop grid at 1024px and mobile drawer below 1024px.
 - [ ] Add overflow-safe sizing for grid/flex children, cards, long links, and controls.
 - [ ] Preserve visible focus states and reduced-motion behavior; hide the closed drawer from tab order, trap focus while open, restore focus on close, and close the drawer when entering desktop width.
-- [ ] Add honest quick filters for no explicit mandatory English requirement and explicit no-degree acceptance; do not treat missing education data as proof.\n- [ ] Update English translations and cache-busting versions.
+- [ ] Add honest quick filters for no explicit mandatory English requirement and explicit no-degree acceptance; do not treat missing education data as proof.
+- [ ] Update English translations and cache-busting versions.
 - [ ] Run the full UI regression test and JavaScript syntax checks.
 
 ### Task 3: Verify and publish a reviewable change
