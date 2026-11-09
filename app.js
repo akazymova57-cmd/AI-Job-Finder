@@ -1151,6 +1151,14 @@ $("search-form").addEventListener("submit", (event) => {
   render();
 });
 
+document.querySelector(".hero-queries")?.addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-hero-query]");
+  if (!chip) return;
+  $("query").value = chip.dataset.heroQuery || "";
+  $("search-form").requestSubmit();
+  $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
 ["location", "level", "type", "sort", "salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].forEach((id) => {
   $(id).addEventListener("change", () => {
     state.currentPage = 1;
