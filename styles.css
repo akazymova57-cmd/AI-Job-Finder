@@ -503,3 +503,22 @@ footer a{color:#236d58}
 @media(prefers-reduced-motion:reduce){
   .hero-queries button{transition:none!important}
 }
+
+
+/* Visible difficulty selector: a compact, functional filter above job results */
+.difficulty-filter{margin:0 0 16px;padding:15px 17px;border:1px solid #e3e9e2;border-radius:14px;background:linear-gradient(115deg,#fbfdfb 0%,#f4f8f4 100%)}
+.difficulty-filter-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}
+.difficulty-filter-kicker{display:block;margin-bottom:4px;color:#648574;font-size:8px;font-weight:800;letter-spacing:1.45px}
+.difficulty-filter-heading h3{margin:0;color:#26362c;font-size:13px;font-weight:800}
+.difficulty-filter-hint{color:#87948a;font-size:9px}
+.difficulty-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.difficulty-option{display:flex;align-items:center;justify-content:center;gap:9px;min-height:42px;padding:8px 10px;border:1px solid #e0e7df;border-radius:9px;background:#fff;color:#68756b;font-size:10px;font-weight:700;cursor:pointer;transition:border-color .16s ease,background .16s ease,color .16s ease,transform .16s ease}
+.difficulty-option:hover{border-color:#a8c9b3;transform:translateY(-1px)}
+.difficulty-option.is-active{border-color:#6ca486;background:#edf6ef;color:#245d43;box-shadow:0 0 0 2px rgba(108,164,134,.10)}
+.difficulty-option-meter{display:flex;align-items:flex-end;gap:2px;height:14px}
+.difficulty-option-meter i{display:block;width:3px;border-radius:2px;background:#dce5dc}
+.difficulty-option-meter i:nth-child(1){height:4px}.difficulty-option-meter i:nth-child(2){height:6px}.difficulty-option-meter i:nth-child(3){height:8px}.difficulty-option-meter i:nth-child(4){height:11px}.difficulty-option-meter i:nth-child(5){height:14px}
+.meter-easy i:nth-child(-n+2),.meter-medium i:nth-child(-n+3),.meter-hard i{background:#78ae8b}
+.difficulty-option.is-active .difficulty-option-meter i{background:#3c8a61}
+@media(max-width:560px){.difficulty-filter{padding:13px 11px}.difficulty-filter-heading{align-items:flex-start;flex-direction:column;gap:4px}.difficulty-options{grid-template-columns:repeat(2,minmax(0,1fr))}.difficulty-option{justify-content:flex-start;padding-left:14px}}
+@media(prefers-reduced-motion:reduce){.difficulty-option{transition:none}}
