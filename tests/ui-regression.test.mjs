@@ -46,5 +46,7 @@ test("mobile drawer is hidden from tab order and has keyboard focus management",
   assert.ok(app.includes("function openSidebar()"));
   assert.ok(app.includes('event.key !== "Tab"'));
   assert.ok(app.includes("sidebarToggle?.focus()"));
-  assert.ok(app.includes("last.focus()"));\n  assert.ok(app.includes("function hasExplicitEnglishRequirement(job)"));\n  assert.ok(app.includes("function hasExplicitNoDegreeRequirement(job)"));
+  assert.ok(app.includes("last.focus()"));
+  assert.ok(app.includes("function hasExplicitEnglishRequirement(job)"));
+  assert.ok(app.includes("function hasExplicitNoDegreeRequirement(job)"));
 });
