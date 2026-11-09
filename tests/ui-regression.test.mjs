@@ -126,7 +126,7 @@ test("language switch restores the original copy and translates the full rendere
 });
 
 test("UI translation never rewrites employer-provided vacancy content", () => {
-  assert.match(app, /const protectedContent = "\\.job-card, \.tracker-item-info, #compare-table td, #compare-table th:not\(:first-child\), \.translation-output"/);
+  assert.ok(app.includes('const protectedContent = ".job-card, .tracker-item-info, #compare-table td, #compare-table th:not(:first-child), .translation-output";'));
   assert.match(app, /parent\.closest\(protectedContent\)/);
   assert.match(app, /element\.closest\(protectedContent\)/);
   assert.doesNotMatch(app, /const protectedContent = "#jobs/);
