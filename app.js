@@ -19,6 +19,33 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+
+let currentJobsLayout = "grid";
+try {
+  currentJobsLayout = localStorage.getItem("aijf_jobs_layout") === "list" ? "list" : "grid";
+} catch (_) {}
+
+function setJobsLayout(layout) {
+  currentJobsLayout = layout === "list" ? "list" : "grid";
+  const jobs = $("jobs");
+  if (jobs) {
+    jobs.classList.toggle("is-list-view", currentJobsLayout === "list");
+    jobs.dataset.layout = currentJobsLayout;
+  }
+  document.querySelectorAll(".view-button").forEach((button) => {
+    const active = button.dataset.layout === currentJobsLayout;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  try { localStorage.setItem("aijf_jobs_layout", currentJobsLayout); } catch (_) {}
+}
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest(".view-button");
+  if (!button) return;
+  event.preventDefault();
+  setJobsLayout(button.dataset.layout);
+});
 let currentLanguage = localStorage.getItem("aijf_language") === "en" ? "en" : "ru";
 
 function applyLanguage() {
@@ -822,6 +849,7 @@ function render() {
     button.classList.toggle("is-saved", saved);
   });
   renderTracker();
+  setJobsLayout(currentJobsLayout);
   applyLanguage();
 }
 
@@ -1345,23 +1373,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-function setJobsLayout(layout) {
-  const jobs = $("jobs");
-  const validLayout = layout === "list" ? "list" : "grid";
-  jobs.classList.toggle("is-list-view", validLayout === "list");
-  document.querySelectorAll(".view-button").forEach((button) => {
-    const active = button.dataset.layout === validLayout;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
-  try { localStorage.setItem("aijf_jobs_layout", validLayout); } catch (_) {}
-}
-
-document.querySelectorAll(".view-button").forEach((button) => {
-  button.addEventListener("click", () => setJobsLayout(button.dataset.layout));
-});
-let savedLayout = "grid";
-try { savedLayout = localStorage.getItem("aijf_jobs_layout") || "grid"; } catch (_) {}
-setJobsLayout(savedLayout);
+setJobsLayout(currentJobsLayout);
 
 loadJobs(false);
