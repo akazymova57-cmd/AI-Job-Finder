@@ -73,3 +73,41 @@ test("degree filter only accepts explicit no-degree statements", () => {
   assert.equal(hasExplicitNoDegreeRequirement({ description: "Bachelor degree required" }), false);
   assert.equal(hasExplicitNoDegreeRequirement({ description: "No degree required" }), true);
 });
+
+
+const experienceHelperStart = app.indexOf("function hasMandatoryExperienceRequirement(job)");
+const experienceHelperEnd = app.indexOf("function cleanText(value)", experienceHelperStart);
+const experienceBlock = app.slice(experienceHelperStart, experienceHelperEnd);
+const entryHelperStart = app.indexOf("function isEntryLevelJob(job)");
+const entryHelperEnd = app.indexOf("function getJobDifficulty(job)", entryHelperStart);
+const entryBlock = app.slice(entryHelperStart, entryHelperEnd);
+const experienceHelpers = new Function(
+  "getJobText", "normalizeText", "cleanText", "seniorPattern", "entryPattern",
+  experienceBlock + entryBlock + "; return { hasMandatoryExperienceRequirement, getExperienceSortRank };"
+);
+const makeExperienceHelpers = () => {
+  const normalize = (value) => String(value || "").toLowerCase();
+  const clean = (value) => String(value || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim();
+  const getText = (job) => normalize([job.title, job.description, ...(job.tags || [])].join(" "));
+  const isEntry = (job) => /\\b(junior|entry.level|intern|trainee|graduate)\\b|стаж[её]р|младш/i.test(normalize(job.title || "")) ||
+    /no experience (?:required|needed)|no prior experience|without experience|entry.level|0\\s*[-–]\\s*1 years?|training (?:will be )?provided|без опыта|опыт не требуется/i.test(normalize(job.description || ""));
+  return experienceHelpers(getText, normalize, clean, /senior|lead|principal|staff engineer|head of|director|руководител/i, /junior|entry[\\s-]?level|no experience|without experience|graduate|trainee|intern(?:ship)?|associate|assistant|coordinator|customer support|support agent|data annotat|virtual assistant|без опыта|начальн\\w*\\s+уровн|стаж[её]р|помощник/i);
+};
+
+test("experience filter respects required years and ignores unrelated preferences", () => {
+  const { hasMandatoryExperienceRequirement } = makeExperienceHelpers();
+  assert.equal(hasMandatoryExperienceRequirement({ title: "Cloud Systems Administrator", description: "3+ years of experience required. English B2 preferred." }), true);
+  assert.equal(hasMandatoryExperienceRequirement({ title: "Data Analyst", description: "3+ years of experience preferred. English B2 required." }), false);
+  assert.equal(hasMandatoryExperienceRequirement({ title: "Senior Product Designer", description: "Build design systems." }), true);
+  assert.equal(hasMandatoryExperienceRequirement({ title: "Customer Support Agent", description: "No experience required. Training provided." }), false);
+});
+
+test("no-experience sorting ranks entry-level first and mandatory-experience roles last", () => {
+  const { getExperienceSortRank } = makeExperienceHelpers();
+  const junior = { title: "Junior Customer Support Agent", description: "No experience required." };
+  const unspecified = { title: "Operations Specialist", description: "Work with the team." };
+  const experienced = { title: "Cloud Systems Administrator", description: "3+ years of experience required." };
+  assert.equal(getExperienceSortRank(junior), 0);
+  assert.equal(getExperienceSortRank(unspecified), 1);
+  assert.equal(getExperienceSortRank(experienced), 2);
+});
