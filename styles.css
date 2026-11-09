@@ -522,3 +522,18 @@ footer a{color:#236d58}
 .difficulty-option.is-active .difficulty-option-meter i{background:#3c8a61}
 @media(max-width:560px){.difficulty-filter{padding:13px 11px}.difficulty-filter-heading{align-items:flex-start;flex-direction:column;gap:4px}.difficulty-options{grid-template-columns:repeat(2,minmax(0,1fr))}.difficulty-option{justify-content:flex-start;padding-left:14px}}
 @media(prefers-reduced-motion:reduce){.difficulty-option{transition:none}}
+
+
+/* View switch: explicit, accessible controls with unmistakable layout feedback */
+.view-switch{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid #dfe8df;border-radius:11px;background:#f5f8f4}
+.view-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:auto;min-width:91px;min-height:36px;padding:0 11px;border:1px solid transparent;border-radius:8px;background:transparent;color:#66756a;font-size:10px;font-weight:750;cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease}
+.view-button-icon{font-size:17px;line-height:1}
+.view-button.is-active{border-color:#c7dfce;background:#fff;color:#176747;box-shadow:0 2px 7px rgba(32,75,47,.11)}
+.view-button:focus-visible{outline:3px solid rgba(39,134,111,.22);outline-offset:2px}
+#jobs[data-layout="grid"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+#jobs[data-layout="list"]{grid-template-columns:minmax(0,1fr)}
+@media(max-width:620px){
+  .view-button{min-width:76px;min-height:34px;padding:0 8px;font-size:9px}
+  #jobs[data-layout="list"] .job-card{display:flex;flex-direction:column;align-items:stretch}
+}
+@media(prefers-reduced-motion:reduce){.view-button{transition:none!important}}
