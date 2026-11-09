@@ -34,7 +34,7 @@ test("existing application controls remain available to app.js", () => {
   for (const id of [
     "sidebar-open", "sidebar-close", "sidebar-backdrop", "sidebar-nav",
     "location", "level", "type", "sort", "salary-only", "no-experience-only",
-    "jobs", "pagination", "pagination-top"
+    "jobs", "pagination", "pagination-top", "no-english-required-only", "no-degree-required-only"
   ]) {
     assert.ok(html.includes(`id="${id}"`), `missing #${id}`);
   }
@@ -46,5 +46,5 @@ test("mobile drawer is hidden from tab order and has keyboard focus management",
   assert.ok(app.includes("function openSidebar()"));
   assert.ok(app.includes('event.key !== "Tab"'));
   assert.ok(app.includes("sidebarToggle?.focus()"));
-  assert.ok(app.includes("last.focus()"));
+  assert.ok(app.includes("last.focus()"));\n  assert.ok(app.includes("function hasExplicitEnglishRequirement(job)"));\n  assert.ok(app.includes("function hasExplicitNoDegreeRequirement(job)"));
 });
