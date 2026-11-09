@@ -25,7 +25,7 @@ test("responsive shell has explicit mobile drawer and desktop grid breakpoints",
   assert.match(theme, /@media\s*\(min-width:\s*1024px\)/);
   assert.match(theme, /@media\s*\(max-width:\s*1023px\)/);
   assert.match(theme, /body\.sidebar-open/);
-  assert.match(theme, /[.]sidebar-backdrop/);
+  assert.ok(theme.includes(".sidebar-backdrop"));
   assert.match(theme, /min-width:\s*0/);
   assert.match(theme, /overflow-x:\s*clip/);
 });
@@ -36,14 +36,15 @@ test("existing application controls remain available to app.js", () => {
     "location", "level", "type", "sort", "salary-only", "no-experience-only",
     "jobs", "pagination", "pagination-top"
   ]) {
-    assert.match(html, new RegExp('id="' + id + '"'), `missing #${id}`);
+    assert.ok(html.includes(`id="${id}"`), `missing #${id}`);
   }
 });
 
-test("mobile drawer supports visibility, focus trapping, and focus restoration", () => {
-  assert.match(theme, /visibility:\s*hidden/);
-  assert.match(theme, /body\.sidebar-open \.filter-sidebar\{visibility:\s*visible/);
-  assert.match(app, /function openSidebar\(\)/);
-  assert.match(app, /event\.key === "Tab"/);
-  assert.match(app, /sidebarToggle\?\.focus\(\)/);
+test("mobile drawer is hidden from tab order and has keyboard focus management", () => {
+  assert.ok(theme.includes("visibility:hidden"));
+  assert.ok(theme.includes("body.sidebar-open .filter-sidebar{transform:translateX(0);visibility:visible}"));
+  assert.ok(app.includes("function openSidebar()"));
+  assert.ok(app.includes('event.key !== "Tab"'));
+  assert.ok(app.includes("sidebarToggle?.focus()"));
+  assert.ok(app.includes("last.focus()"));
 });
