@@ -246,3 +246,92 @@ footer a{color:#236d58}
 .page-button{border-color:#dfe5dc;background:#fff}
 .ghost-button{border-color:#dfe5dc;background:#fff}
 .text-button{color:#58665b}
+
+
+/* Quick filters — consistent, aligned control group */
+.quick-filters{
+  display:grid;
+  gap:8px;
+  margin-top:18px;
+  padding:15px 12px 12px;
+  border:1px solid #e3e9e2;
+  border-radius:13px;
+  background:#f7f9f6;
+}
+.quick-filters h3{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin:0 0 3px;
+  color:#526157;
+  font:800 10px/1.3 Manrope,sans-serif;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.quick-filter-card{
+  display:grid;
+  grid-template-columns:16px minmax(0,1fr);
+  align-items:start;
+  gap:10px;
+  width:100%;
+  min-width:0;
+  margin:0;
+  padding:11px 10px;
+  border:1px solid #e1e8e0;
+  border-radius:10px;
+  background:#fff;
+  cursor:pointer;
+  transition:border-color .16s ease,background .16s ease,box-shadow .16s ease;
+}
+.quick-filter-card input{
+  width:15px;
+  height:15px;
+  margin:2px 0 0;
+  accent-color:#27866f;
+  cursor:pointer;
+}
+.quick-filter-copy{
+  display:grid;
+  min-width:0;
+  gap:4px;
+}
+.quick-filter-copy strong{
+  display:block;
+  color:#29392e;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+.quick-filter-copy small{
+  display:block;
+  color:#7b877d;
+  font-size:9px;
+  font-weight:400;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.quick-filter-card:hover{
+  border-color:#b7d5c4;
+  background:#fbfdfb;
+}
+.quick-filter-card:focus-within{
+  outline:3px solid rgba(39,134,111,.15);
+  outline-offset:1px;
+}
+.quick-filter-card:has(input:checked){
+  border-color:#91c4a7;
+  background:#edf5ef;
+  box-shadow:inset 3px 0 #27866f;
+}
+.quick-filter-card:has(input:checked) .quick-filter-copy strong{
+  color:#1f6b5b;
+}
+@media(max-width:1023px){
+  .quick-filters{margin-top:16px;padding:14px 11px 11px}
+  .quick-filter-card{padding:12px 11px}
+}
+@media(prefers-reduced-motion:reduce){
+  .quick-filter-card{transition:none!important}
+}
