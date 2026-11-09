@@ -14,7 +14,8 @@ const state = {
   pageSize: 10,
   quickCategory: "",
   quickSource: "",
-  quickView: "all"
+  quickView: "all",
+  difficultyFilter: "all"
 };
 
 const $ = (id) => document.getElementById(id);
@@ -530,6 +531,7 @@ function render() {
   const filtered = state.jobs.filter((job) => {
     if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
     const text = getJobText(job);
+    if (state.difficultyFilter !== "all" && getJobDifficulty(job).level !== state.difficultyFilter) return false;
     if (query && !normalizeText(query).split(/\s+/).filter(Boolean).every((word) => text.includes(word))) return false;
     if (!locationMatches(job, location)) return false;
     if (level === "entry" && !entryPattern.test(text)) return false;
@@ -1166,6 +1168,19 @@ document.querySelector(".hero-queries")?.addEventListener("click", (event) => {
   });
 });
 
+document.querySelectorAll("[data-difficulty-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.difficultyFilter = button.dataset.difficultyFilter || "all";
+    state.currentPage = 1;
+    document.querySelectorAll("[data-difficulty-filter]").forEach((option) => {
+      const active = option === button;
+      option.classList.toggle("is-active", active);
+      option.setAttribute("aria-pressed", String(active));
+    });
+    render();
+  });
+});
+
 $("refresh").addEventListener("click", () => {
   state.currentPage = 1;
   loadJobs(true);
@@ -1270,6 +1285,12 @@ function resetSearchFilters() {
   state.quickCategory = "";
   state.quickSource = "";
   state.quickView = "all";
+  state.difficultyFilter = "all";
+  document.querySelectorAll("[data-difficulty-filter]").forEach((button) => {
+    const active = button.dataset.difficultyFilter === "all";
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
   state.currentPage = 1;
   document.querySelectorAll("#sidebar-nav .sidebar-link").forEach((item) => {
     item.classList.toggle("is-active", item.dataset.view === "all");
