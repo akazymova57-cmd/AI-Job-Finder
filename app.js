@@ -151,6 +151,18 @@ try {
 } catch (_) {}
 
 let currentLanguage = localStorage.getItem("aijf_language") === "en" ? "en" : "ru";
+const originalTextNodes = new WeakMap();
+const originalAttributes = new WeakMap();
+
+function translateUiValue(value, dictionary) {
+  let translated = value;
+  Object.entries(dictionary)
+    .sort((a, b) => b[0].length - a[0].length)
+    .forEach(([source, target]) => {
+      if (source && translated.includes(source)) translated = translated.split(source).join(target);
+    });
+  return translated;
+}
 
 function applyLanguage() {
   const dictionary = (window.APP_TRANSLATIONS && window.APP_TRANSLATIONS[currentLanguage]) || {};
@@ -158,32 +170,65 @@ function applyLanguage() {
   let node;
   while ((node = walker.nextNode())) {
     if (["SCRIPT", "STYLE", "TEXTAREA"].includes(node.parentElement?.tagName)) continue;
-    let translated = node.nodeValue;
-    Object.entries(dictionary)
-      .sort((a, b) => b[0].length - a[0].length)
-      .forEach(([source, target]) => {
-        if (source && translated.includes(source)) translated = translated.split(source).join(target);
-      });
-    node.nodeValue = translated;
+    let record = originalTextNodes.get(node);
+    if (!record || node.nodeValue !== record.output) {
+      record = { source: node.nodeValue, output: node.nodeValue };
+    }
+    const nextValue = currentLanguage === "ru"
+      ? record.source
+      : translateUiValue(record.source, dictionary);
+    node.nodeValue = nextValue;
+    record.output = nextValue;
+    originalTextNodes.set(node, record);
   }
 
   document.querySelectorAll("[placeholder], [aria-label], [title]").forEach((element) => {
+    let originals = originalAttributes.get(element);
+    if (!originals) {
+      originals = {};
+      originalAttributes.set(element, originals);
+    }
     ["placeholder", "aria-label", "title"].forEach((attribute) => {
       const value = element.getAttribute(attribute);
-      if (value && dictionary[value]) element.setAttribute(attribute, dictionary[value]);
+      let record = originals[attribute];
+      if (!record || value !== record.output) record = { source: value, output: value };
+      if (record.source !== null && record.source !== undefined) {
+        const nextValue = currentLanguage === "ru"
+          ? record.source
+          : translateUiValue(record.source, dictionary);
+        element.setAttribute(attribute, nextValue);
+        record.output = nextValue;
+        originals[attribute] = record;
+      }
     });
   });
 
+  const title = document.querySelector("head title");
+  if (title) title.textContent = currentLanguage === "ru"
+    ? "AI Job Finder — международная удалённая работа"
+    : "AI Job Finder — International Remote Jobs";
+  const description = document.querySelector('meta[name="description"]');
+  if (description) description.content = currentLanguage === "ru"
+    ? "AI Job Finder — поиск международных удалённых вакансий с оценкой сложности, языка и совпадения навыков."
+    : "AI Job Finder — discover international remote jobs and compare experience, language and skill requirements.";
+
   document.documentElement.lang = currentLanguage;
   const toggle = $("language-toggle");
-  if (toggle) toggle.textContent = currentLanguage === "ru" ? "RU / EN" : "EN / RU";
+  if (toggle) {
+    toggle.textContent = currentLanguage === "ru" ? "EN" : "RU";
+    toggle.setAttribute("aria-label", currentLanguage === "ru" ? "Switch to English" : "Переключить на русский");
+    toggle.setAttribute("title", currentLanguage === "ru" ? "Switch to English" : "Переключить на русский");
+  }
 }
 
 $("language-toggle")?.addEventListener("click", () => {
   currentLanguage = currentLanguage === "ru" ? "en" : "ru";
-  localStorage.setItem("aijf_language", currentLanguage);
-  location.reload();
+  try { localStorage.setItem("aijf_language", currentLanguage); } catch (_) {}
+  render();
+  applyLanguage();
 });
+
+applyLanguage();
 
 const SKILL_CATALOG = [
   { id: "customer-support", label: "Customer support", terms: ["customer support", "customer service", "technical support", "support agent", "поддержка клиентов", "служба поддержки", "работа с клиентами"] },
@@ -1004,6 +1049,58 @@ document.addEventListener("click", (event) => {
   toggle.textContent = allJobDetailsExpanded ? "Свернуть подробности" : "Развернуть подробности";
 });
 
+const vacancyTranslationCache = new Map();
+
+function splitTranslationText(text, maxLength = 3200) {
+  const chunks = [];
+  let remaining = String(text || "").trim();
+  while (remaining.length > maxLength) {
+    let splitAt = remaining.lastIndexOf(" ", maxLength);
+    if (splitAt < Math.floor(maxLength * 0.6)) splitAt = maxLength;
+    chunks.push(remaining.slice(0, splitAt).trim());
+    remaining = remaining.slice(splitAt).trim();
+  }
+  if (remaining) chunks.push(remaining);
+  return chunks;
+}
+
+async function translateVacancyDescription(text, targetLanguage) {
+  const chunks = splitTranslationText(text);
+  const translatedChunks = [];
+  for (const chunk of chunks) {
+    const url = new URL("https://translate.googleapis.com/translate_a/single");
+    url.search = new URLSearchParams({
+      client: "gtx",
+      sl: "auto",
+      tl: targetLanguage,
+      dt: "t",
+      q: chunk
+    }).toString();
+    let translated = "";
+    try {
+      const response = await fetch(url.toString(), { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error("Google Translate HTTP " + response.status);
+      const payload = await response.json();
+      translated = Array.isArray(payload?.[0])
+        ? payload[0].map((part) => Array.isArray(part) ? part[0] || "" : "").join("")
+        : "";
+      if (!translated.trim()) throw new Error("Empty translation response");
+    } catch (googleError) {
+      const memoryUrl = "https://api.mymemory.translated.net/get?q=" +
+        encodeURIComponent(chunk.slice(0, 450)) + "&langpair=autodetect|" + encodeURIComponent(targetLanguage);
+      const response = await fetch(memoryUrl, { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error("Both translation services are unavailable (HTTP " + response.status + ")");
+      const result = await response.json();
+      translated = result?.responseStatus === 200 ? result?.responseData?.translatedText || "" : "";
+      if (!translated.trim() || /MYMEMORY WARNING|QUERY LENGTH LIMIT|PLEASE SELECT TWO DISTINCT LANGUAGES/i.test(translated)) {
+        throw new Error("Both translation services failed. Please try again later.");
+      }
+    }
+    translatedChunks.push(translated.trim());
+  }
+  return translatedChunks.join("\n\n");
+}
+
 function render() {
   const pageSizeSelect = $("page-size");
   if (pageSizeSelect && pageSizeSelect.value !== String(state.pageSize)) pageSizeSelect.value = String(state.pageSize);
@@ -1218,27 +1315,40 @@ function render() {
       const translationButton = document.createElement("button");
       translationButton.type = "button";
       translationButton.className = "translate-button";
-      translationButton.textContent = currentLanguage === "ru" ? "Перевести на русский" : "Translate to Russian";
+      const translateLabel = () => currentLanguage === "ru" ? "Перевести описание на русский" : "Translate description to Russian";
       const translationOutput = document.createElement("div");
       translationOutput.className = "translation-output";
+      translationOutput.hidden = true;
+      translationButton.textContent = translateLabel();
       translationButton.addEventListener("click", async () => {
+        if (!translationOutput.hidden && translationOutput.textContent) {
+          translationOutput.hidden = true;
+          translationButton.textContent = translateLabel();
+          return;
+        }
+        const cacheKey = safeJobUrl(job.url, job.source_id) + "|ru";
+        if (vacancyTranslationCache.has(cacheKey)) {
+          translationOutput.textContent = vacancyTranslationCache.get(cacheKey);
+          translationOutput.hidden = false;
+          translationButton.textContent = currentLanguage === "ru" ? "Скрыть перевод" : "Hide translation";
+          return;
+        }
         translationButton.disabled = true;
         translationButton.textContent = currentLanguage === "ru" ? "Переводим…" : "Translating…";
+        translationOutput.textContent = "";
         try {
           const sourceText = cleanText(job.description || "");
-          if (!sourceText) throw new Error("Описание вакансии отсутствует");
-          const response = await fetch("https://api.mymemory.translated.net/get?q=" + encodeURIComponent(sourceText.slice(0, 4500)) + "&langpair=en|ru");
-          if (!response.ok) throw new Error("Сервис перевода временно недоступен");
-          const result = await response.json();
-          const translated = result && result.responseData && result.responseData.translatedText;
-          if (!translated) throw new Error("Перевод не получен");
+          if (!sourceText) throw new Error(currentLanguage === "ru" ? "Описание вакансии отсутствует" : "Job description is empty");
+          const translated = await translateVacancyDescription(sourceText, "ru");
+          if (!translated) throw new Error(currentLanguage === "ru" ? "Перевод не получен" : "No translation was returned");
+          vacancyTranslationCache.set(cacheKey, translated);
           translationOutput.textContent = translated;
           translationOutput.hidden = false;
-          translationButton.textContent = "Скрыть перевод";
+          translationButton.textContent = currentLanguage === "ru" ? "Скрыть перевод" : "Hide translation";
         } catch (error) {
-          translationOutput.textContent = "Не удалось перевести: " + error.message;
+          translationOutput.textContent = (currentLanguage === "ru" ? "Не удалось перевести: " : "Translation failed: ") + error.message;
           translationOutput.hidden = false;
-          translationButton.textContent = "Повторить перевод";
+          translationButton.textContent = currentLanguage === "ru" ? "Повторить перевод" : "Retry translation";
         } finally {
           translationButton.disabled = false;
         }

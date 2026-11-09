@@ -2,10 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [css, html, app] = await Promise.all([
+const [css, html, app, en] = await Promise.all([
   readFile(new URL("../styles.css", import.meta.url), "utf8"),
   readFile(new URL("../index.html", import.meta.url), "utf8"),
-  readFile(new URL("../app.js", import.meta.url), "utf8")
+  readFile(new URL("../app.js", import.meta.url), "utf8"),
+  readFile(new URL("../translations/en.js", import.meta.url), "utf8")
 ]);
 
 const themeStart = css.lastIndexOf("/* AI Job Finder — graphite and emerald theme */");
@@ -110,4 +111,24 @@ test("no-experience sorting ranks entry-level first and mandatory-experience rol
   assert.equal(getExperienceSortRank(junior), 0);
   assert.equal(getExperienceSortRank(unspecified), 1);
   assert.equal(getExperienceSortRank(experienced), 2);
+});
+
+
+test("language switch restores the original copy and translates the full rendered interface", () => {
+  assert.match(app, /const originalTextNodes = new WeakMap\(\)/);
+  assert.ok(app.includes('const nextValue = currentLanguage === "ru"'));
+  assert.match(app, /render\(\);\s*applyLanguage\(\);/);
+  assert.doesNotMatch(app, /location\.reload\(\)/);
+  assert.match(en, /"Сравнение вакансий": "Job comparison"/);
+  assert.match(en, /"Источники: Remote OK · Jobicy · We Work Remotely · Himalayas ·": "Sources:/);
+  assert.match(en, /"Сетка": "Grid"/);
+  assert.match(en, /"Без обязательного английского": "No mandatory English"/);
+});
+
+test("vacancy translation uses automatic language detection, chunking and a fallback provider", () => {
+  assert.match(app, /function translateVacancyDescription\(text, targetLanguage\)/);
+  assert.match(app, /translate\.googleapis\.com\/translate_a\/single/);
+  assert.match(app, /api\.mymemory\.translated\.net\/get/);
+  assert.match(app, /splitTranslationText\(text\)/);
+  assert.match(app, /responseStatus === 200/);
 });
