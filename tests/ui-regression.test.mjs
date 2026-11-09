@@ -2,10 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [css, html, app] = await Promise.all([
+const [css, html, app, en] = await Promise.all([
   readFile(new URL("../styles.css", import.meta.url), "utf8"),
   readFile(new URL("../index.html", import.meta.url), "utf8"),
-  readFile(new URL("../app.js", import.meta.url), "utf8")
+  readFile(new URL("../app.js", import.meta.url), "utf8"),
+  readFile(new URL("../translations/en.js", import.meta.url), "utf8")
 ]);
 
 const themeStart = css.lastIndexOf("/* AI Job Finder — graphite and emerald theme */");
