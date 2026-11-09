@@ -24,7 +24,7 @@ test("responsive shell has explicit mobile drawer and desktop grid breakpoints",
   assert.match(theme, /@media\s*\(min-width:\s*1024px\)/);
   assert.match(theme, /@media\s*\(max-width:\s*1023px\)/);
   assert.match(theme, /body\.sidebar-open/);
-  assert.match(theme, /#sidebar-backdrop/);
+  assert.match(theme, /\\.sidebar-backdrop/);
   assert.match(theme, /min-width:\s*0/);
   assert.match(theme, /overflow-x:\s*clip/);
 });
