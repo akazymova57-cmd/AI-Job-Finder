@@ -166,7 +166,7 @@ function translateUiValue(value, dictionary) {
 
 function applyLanguage() {
   const dictionary = (window.APP_TRANSLATIONS && window.APP_TRANSLATIONS[currentLanguage]) || {};
-  const protectedContent = "#jobs, #tracker-list, #compare-dialog, .translation-output";
+  const protectedContent = ".job-card, .tracker-item-info, #compare-table td, #compare-table th:not(:first-child), .translation-output";
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
