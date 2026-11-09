@@ -694,6 +694,43 @@ document.addEventListener("click", (event) => {
   }
 });
 
+function applySharedSearchFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get("filters");
+  if (!raw || raw.length > 3000) return;
+  try {
+    const f = JSON.parse(raw);
+    if (!f || typeof f !== "object" || Array.isArray(f)) return;
+    state.query = typeof f.query === "string" ? f.query.slice(0, 160) : "";
+    $("query").value = state.query;
+    const setSelect = (id, value, fallback) => {
+      const select = $(id);
+      if ([...select.options].some((option) => option.value === value)) select.value = value;
+      else select.value = fallback;
+    };
+    setSelect("location", f.location, "worldwide");
+    setSelect("level", f.level, "all");
+    setSelect("type", f.type, "all");
+    setSelect("sort", f.sort, "match");
+    $("salary-only").checked = Boolean(f.salaryOnly);
+    $("no-experience-only").checked = Boolean(f.noExperienceOnly);
+    $("no-english-required-only").checked = Boolean(f.noEnglishRequiredOnly);
+    $("no-degree-required-only").checked = Boolean(f.noDegreeRequiredOnly);
+    state.difficultyFilter = ["all", "easy", "medium", "hard"].includes(f.difficulty) ? f.difficulty : "all";
+    state.quickCategory = typeof f.category === "string" ? f.category.slice(0, 40) : "";
+    state.quickSource = typeof f.source === "string" ? f.source.slice(0, 40) : "";
+    state.quickView = ["all", "today", "favorites", "filtered"].includes(f.view) ? f.view : "all";
+    document.querySelectorAll("[data-difficulty-filter]").forEach((button) => {
+      const active = button.dataset.difficultyFilter === state.difficultyFilter;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    state.currentPage = 1;
+  } catch (_) {
+    // Ignore malformed shared links and keep the default search.
+  }
+}
+
 function renderActiveFilters() {
   const container = $("active-filters");
   if (!container) return;
@@ -759,9 +796,40 @@ function renderActiveFilters() {
   save.dataset.saveSearch = "true";
   save.textContent = "＋ Сохранить поиск";
   container.append(save);
+
+  const share = document.createElement("button");
+  share.type = "button";
+  share.className = "active-filters-share";
+  share.dataset.shareSearch = "true";
+  share.textContent = "↗ Скопировать ссылку";
+  container.append(share);
 }
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
+  const share = event.target.closest("[data-share-search]");
+  if (share) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("filters", JSON.stringify(currentSearchSnapshot()));
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url.toString());
+      } else {
+        const field = document.createElement("textarea");
+        field.value = url.toString();
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.append(field);
+        field.select();
+        document.execCommand("copy");
+        field.remove();
+      }
+      share.textContent = "Ссылка скопирована";
+    } catch (_) {
+      share.textContent = "Не удалось скопировать";
+    }
+    window.setTimeout(() => { if (share.isConnected) share.textContent = "↗ Скопировать ссылку"; }, 2200);
+    return;
+  }
   const chip = event.target.closest("[data-remove-filter]");
   if (!chip) return;
   const key = chip.dataset.removeFilter;
@@ -1651,5 +1719,6 @@ document.addEventListener("keydown", (event) => {
 });
 
 setJobsLayout(currentJobsLayout);
+applySharedSearchFromUrl();
 
 loadJobs(false);
