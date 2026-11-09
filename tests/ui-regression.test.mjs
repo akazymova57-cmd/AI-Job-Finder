@@ -111,3 +111,22 @@ test("no-experience sorting ranks entry-level first and mandatory-experience rol
   assert.equal(getExperienceSortRank(unspecified), 1);
   assert.equal(getExperienceSortRank(experienced), 2);
 });
+
+
+test("language switch restores the original copy and translates the full rendered interface", () => {
+  assert.match(app, /const originalTextNodes = new WeakMap\(\)/);
+  assert.match(app, /currentLanguage === "ru"\s*\? originalTextNodes\.get\(node\)/);
+  assert.match(app, /render\(\);\s*applyLanguage\(\);/);
+  assert.doesNotMatch(app, /location\.reload\(\)/);
+  assert.match(en, /"Сравнение вакансий": "Job comparison"/);
+  assert.match(en, /"Сетка": "Grid"/);
+  assert.match(en, /"Без обязательного английского": "No mandatory English"/);
+});
+
+test("vacancy translation uses automatic language detection, chunking and a fallback provider", () => {
+  assert.match(app, /function translateVacancyDescription\(text, targetLanguage\)/);
+  assert.match(app, /translate\.googleapis\.com\/translate_a\/single/);
+  assert.match(app, /api\.mymemory\.translated\.net\/get/);
+  assert.match(app, /splitTranslationText\(text\)/);
+  assert.match(app, /responseStatus === 200/);
+});
