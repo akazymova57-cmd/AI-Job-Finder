@@ -45,6 +45,7 @@
 
 **Files:**
 - Modify: `styles.css`
+- Modify: `app.js` responsive drawer focus management
 - Modify: `index.html` cache-busting version strings
 
 **Interfaces:**
@@ -54,7 +55,7 @@
 - [ ] Replace conflicting blue-oriented visual overrides with one final graphite/ivory/emerald theme.
 - [ ] Normalize desktop grid at 1024px and mobile drawer below 1024px.
 - [ ] Add overflow-safe sizing for grid/flex children, cards, long links, and controls.
-- [ ] Preserve visible focus states, reduced-motion behavior, and keyboard drawer behavior.
+- [ ] Preserve visible focus states and reduced-motion behavior; hide the closed drawer from tab order, trap focus while open, restore focus on close, and close the drawer when entering desktop width.
 - [ ] Update cache-busting versions.
 - [ ] Run the full UI regression test and JavaScript syntax checks.
 
