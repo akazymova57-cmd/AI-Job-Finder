@@ -824,6 +824,8 @@ function render() {
 }
 
 
+let trackerFilter = "all";
+
 const APPLICATION_STATUSES = [
   ["saved", "В избранном"],
   ["planned", "Планирую откликнуться"],
@@ -853,25 +855,82 @@ function persistSavedJobs() {
 function renderTracker() {
   const list = $("tracker-list");
   const count = $("tracker-count");
+  const stats = $("tracker-stats");
+  const filters = $("tracker-filters");
   if (!list || !count) return;
-  count.textContent = state.savedJobs.length + " вакансий";
+
+  const total = state.savedJobs.length;
+  const countByStatus = (status) => state.savedJobs.filter((job) => (job.status || "saved") === status).length;
+  const stages = [["saved", "В избранном"], ["planned", "В планах"], ["applied", "Отклики"], ["interview", "Интервью"], ["accepted", "Офферы"]];
+  count.textContent = total + " " + (total === 1 ? "вакансия" : "вакансий");
+
+  if (stats) {
+    stats.replaceChildren();
+    stages.forEach(([status, label]) => {
+      const tile = document.createElement("div");
+      tile.className = "tracker-stat tracker-stat-" + status;
+      const value = document.createElement("strong");
+      value.textContent = String(countByStatus(status));
+      const caption = document.createElement("span");
+      caption.textContent = label;
+      tile.append(value, caption);
+      stats.append(tile);
+    });
+    const progress = document.createElement("div");
+    progress.className = "tracker-progress";
+    progress.setAttribute("role", "img");
+    const progressed = ["applied", "interview", "accepted"].reduce((sum, status) => sum + countByStatus(status), 0);
+    progress.setAttribute("aria-label", progressed + " откликов продвинулись по этапам из " + total + " сохранённых вакансий");
+    const fill = document.createElement("span");
+    fill.style.width = (total ? Math.round(progressed / total * 100) : 0) + "%";
+    progress.append(fill);
+    stats.append(progress);
+  }
+  filters?.querySelectorAll("[data-tracker-filter]").forEach((button) => {
+    const active = button.dataset.trackerFilter === trackerFilter;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
   list.replaceChildren();
-  if (!state.savedJobs.length) {
-    const empty = document.createElement("p");
-    empty.className = "tracker-empty";
-    empty.textContent = "Сохраняй вакансии кнопкой «В избранное», чтобы вести список откликов.";
+  const visibleJobs = trackerFilter === "all" ? state.savedJobs : state.savedJobs.filter((job) => (job.status || "saved") === trackerFilter);
+  if (!total) {
+    const empty = document.createElement("div");
+    empty.className = "tracker-empty tracker-empty-state";
+    const icon = document.createElement("span");
+    icon.className = "tracker-empty-icon";
+    icon.textContent = "✳";
+    const title = document.createElement("strong");
+    title.textContent = "Твой карьерный трекер начинается здесь";
+    const message = document.createElement("p");
+    message.textContent = "Сохраняй интересные вакансии — здесь появится личная доска поиска и откликов.";
+    empty.append(icon, title, message);
     list.append(empty);
     return;
   }
-  state.savedJobs.forEach((job) => {
+  if (!visibleJobs.length) {
+    const empty = document.createElement("p");
+    empty.className = "tracker-empty";
+    empty.textContent = "На этом этапе пока нет вакансий. Измени статус одной из сохранённых вакансий.";
+    list.append(empty);
+    return;
+  }
+
+  visibleJobs.forEach((job) => {
     const item = document.createElement("article");
     item.className = "tracker-item";
     const info = document.createElement("div");
+    info.className = "tracker-item-info";
     const title = document.createElement("h3");
     title.textContent = job.title || "Вакансия без названия";
     const company = document.createElement("p");
-    company.textContent = job.company || "Компания не указана";
+    company.textContent = [job.company || "Компания не указана", job.source_name || ""].filter(Boolean).join(" · ");
     info.append(title, company);
+
+    const statusWrap = document.createElement("label");
+    statusWrap.className = "tracker-status-wrap";
+    const statusLabel = document.createElement("span");
+    statusLabel.textContent = "ЭТАП";
     const select = document.createElement("select");
     select.setAttribute("aria-label", "Статус отклика: " + title.textContent);
     APPLICATION_STATUSES.forEach(([value, label]) => {
@@ -883,32 +942,42 @@ function renderTracker() {
     select.value = job.status || "saved";
     select.addEventListener("change", () => {
       job.status = select.value;
+      job.updatedAt = new Date().toISOString();
       persistSavedJobs();
+      renderTracker();
     });
+    statusWrap.append(statusLabel, select);
+
     const actions = document.createElement("div");
-    actions.style.display = "flex";
-    actions.style.gap = "8px";
-    actions.style.flexWrap = "wrap";
+    actions.className = "tracker-item-actions";
     const link = document.createElement("a");
     link.href = safeJobUrl(job.url, job.source_id);
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    link.textContent = "Первоисточник ↗";
+    link.textContent = "Открыть ↗";
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "favorite-button";
     remove.textContent = "Убрать";
+    remove.setAttribute("aria-label", "Убрать из избранного: " + title.textContent);
     remove.addEventListener("click", () => {
       state.savedJobs = state.savedJobs.filter((saved) => saved.url !== job.url);
       persistSavedJobs();
       render();
     });
     actions.append(link, remove);
-    item.append(info, select, actions);
+    item.append(info, statusWrap, actions);
     list.append(item);
   });
 }
 
+
+$("tracker-filters")?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-tracker-filter]");
+  if (!button) return;
+  trackerFilter = button.dataset.trackerFilter || "all";
+  renderTracker();
+});
 
 function setSidebarActive(element) {
   document.querySelectorAll("#sidebar-nav .sidebar-link").forEach((link) => {
@@ -1066,6 +1135,7 @@ $("jobs").addEventListener("click", (event) => {
       title: source.title || "Вакансия без названия",
       company: source.company_name || "Компания не указана",
       status: "saved",
+      savedAt: new Date().toISOString(),
       source_id: source.source_id,
       source_name: source.source_name
     });
