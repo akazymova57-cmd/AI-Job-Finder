@@ -659,6 +659,8 @@ document.addEventListener("click", (event) => {
 });
 
 function render() {
+  const pageSizeSelect = $("page-size");
+  if (pageSizeSelect && pageSizeSelect.value !== String(state.pageSize)) pageSizeSelect.value = String(state.pageSize);
   const query = state.query.trim();
   const location = $("location").value;
   const level = $("level").value;
