@@ -7,7 +7,7 @@
   <!-- Build refresh: experience sorting 2026-11-09 -->
   <meta name="description" content="AI Job Finder — поиск международных удалённых вакансий с оценкой сложности, языка и совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
-  <link rel="stylesheet" href="styles.css?v=20261109-viewfix1">
+  <link rel="stylesheet" href="styles.css?v=20261109-compare2">
   <script src="config.js"></script>
   <script src="translations/ru.js"></script>
   <script src="translations/en.js"></script>
@@ -174,6 +174,8 @@
             <button id="command-open" class="command-trigger" type="button" aria-haspopup="dialog" aria-controls="command-dialog">
               <span class="command-trigger-icon">⌘</span><span>Быстрые действия</span><kbd>Ctrl K</kbd>
             </button>
+            <label class="page-size-control" for="page-size"><span>На странице</span><select id="page-size" aria-label="Количество вакансий на странице"><option value="10">10</option><option value="20">20</option><option value="50">50</option></select></label>
+            <button id="details-toggle" class="details-toggle" type="button" aria-pressed="false">Развернуть подробности</button>
             <div class="view-switch" role="group" aria-label="Режим отображения вакансий">
               <button type="button" class="view-button is-active" data-layout="grid" aria-pressed="true" aria-label="Показать вакансии сеткой" title="Сетка"><span class="view-button-icon" aria-hidden="true">▦</span><span>Сетка</span></button>
               <button type="button" class="view-button" data-layout="list" aria-pressed="false" aria-label="Показать вакансии списком" title="Список"><span class="view-button-icon" aria-hidden="true">☷</span><span>Список</span></button>
@@ -191,7 +193,19 @@
               <button type="button" class="difficulty-option" data-difficulty-filter="hard" aria-pressed="false"><span class="difficulty-option-meter meter-hard"><i></i><i></i><i></i><i></i><i></i></span><span>Высокая</span></button>
             </div>
           </section>
+          <div id="active-filters" class="active-filters" aria-label="Активные фильтры" hidden></div>
+          <div id="saved-searches" class="saved-searches" aria-label="Сохранённые поиски" hidden></div>
           <div id="status" class="status" role="status" aria-live="polite">Загружаем вакансии…</div>
+          <section id="results-insights" class="results-insights" aria-label="Сводка найденных вакансий">
+            <div class="result-insight"><strong id="insight-total">0</strong><span>Всего найдено</span></div>
+            <div class="result-insight"><strong id="insight-entry">0</strong><span>Начальный уровень</span></div>
+            <div class="result-insight"><strong id="insight-worldwide">0</strong><span>Worldwide</span></div>
+            <div class="result-insight"><strong id="insight-recent">0</strong><span>За последние 3 дня</span></div>
+          </section>
+          <section id="compare-tray" class="compare-tray" aria-live="polite" hidden>
+            <div><strong>Сравнение вакансий</strong><span><b id="compare-count">0</b> из 3 выбрано</span></div>
+            <div class="compare-tray-actions"><button id="clear-compare" type="button">Очистить</button><button id="open-compare" type="button" disabled>Выбери ещё 2</button></div>
+          </section>
           <nav id="pagination-top" class="pagination" aria-label="Пагинация вакансий сверху" hidden></nav>
           <div id="jobs" class="jobs-grid"></div>
           <nav id="pagination" class="pagination" aria-label="Пагинация вакансий" hidden></nav>
@@ -241,6 +255,11 @@
     </div>
   </dialog>
   <footer id="about"><span>AI Job Finder</span><span>Источники: Remote OK · Jobicy · We Work Remotely · Himalayas · <a href="https://github.com/akazymova57-cmd/AI-Job-Finder" target="_blank" rel="noopener noreferrer">GitHub проекта</a></span></footer>
-  <script src="app.js?v=20261109-viewfix1"></script>
+  <script src="app.js?v=20261109-compare2"></script>
+
+  <dialog id="compare-dialog" class="compare-dialog" aria-labelledby="compare-title">
+    <div class="compare-dialog-header"><div><p>AI JOB FINDER / SHORTLIST</p><h2 id="compare-title">Сравнение вакансий</h2></div><button id="close-compare" type="button" aria-label="Закрыть сравнение">×</button></div>
+    <div class="compare-table-wrap"><table id="compare-table" class="compare-table"></table></div>
+  </dialog>
 </body>
 </html>

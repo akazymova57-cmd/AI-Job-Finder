@@ -1,6 +1,7 @@
 const CACHE_KEY = "aijf_multi_source_cache_v2";
 const CACHE_TTL = 6 * 60 * 60 * 1000;
 const TRACKER_KEY = "aijf_saved_jobs_v1";
+const SEARCHES_KEY = "aijf_saved_searches_v1";
 
 const state = {
   jobs: [],
@@ -10,6 +11,7 @@ const state = {
   sourceStatus: "",
   loading: false,
   savedJobs: readSavedJobs(),
+  savedSearches: readSavedSearches(),
   currentPage: 1,
   pageSize: 10,
   quickCategory: "",
@@ -19,6 +21,103 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+
+let compareUrls = [];
+
+function renderCompareTray() {
+  const tray = $("compare-tray");
+  const count = $("compare-count");
+  const open = $("open-compare");
+  if (!tray || !count || !open) return;
+  count.textContent = String(compareUrls.length);
+  tray.hidden = compareUrls.length === 0;
+  open.disabled = compareUrls.length < 2;
+  open.textContent = compareUrls.length < 2 ? "Выбери ещё " + (2 - compareUrls.length) : "Сравнить вакансии";
+  document.querySelectorAll(".compare-button").forEach((button) => {
+    const selected = compareUrls.includes(button.dataset.compareUrl);
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+    button.textContent = selected ? "✓ В сравнении" : "⇄ Сравнить";
+    button.disabled = !selected && compareUrls.length >= 3;
+    button.title = selected ? "Убрать вакансию из сравнения" : "Добавить вакансию в сравнение";
+  });
+}
+
+function openCompareDialog() {
+  const dialog = $("compare-dialog");
+  const table = $("compare-table");
+  if (!dialog || !table || compareUrls.length < 2) return;
+  const selected = compareUrls.map((url) => state.jobs.find((job) => safeJobUrl(job.url, job.source_id) === url)).filter(Boolean);
+  if (selected.length < 2) return;
+  table.replaceChildren();
+  const fields = [
+    ["Компания", (job) => job.company_name || "Не указана"],
+    ["География", (job) => job.candidate_required_location || "Не указана"],
+    ["Зарплата", (job) => job.salary || "Не указана"],
+    ["Занятость", (job) => job.job_type || "Не указана"],
+    ["Опыт", getExperienceRequirement],
+    ["Английский", getEnglishRequirement],
+    ["Сложность", (job) => getJobDifficulty(job).label],
+    ["Опубликована", getFreshnessLabel]
+  ];
+  const head = document.createElement("tr");
+  const first = document.createElement("th");
+  first.textContent = "Параметр";
+  head.append(first);
+  selected.forEach((job) => {
+    const cell = document.createElement("th");
+    cell.textContent = cleanText(job.title || "Вакансия").slice(0, 90);
+    head.append(cell);
+  });
+  table.append(head);
+  fields.forEach(([label, getter]) => {
+    const row = document.createElement("tr");
+    const heading = document.createElement("th");
+    heading.textContent = label;
+    row.append(heading);
+    selected.forEach((job) => {
+      const cell = document.createElement("td");
+      cell.textContent = getter(job);
+      row.append(cell);
+    });
+    table.append(row);
+  });
+  const linksRow = document.createElement("tr");
+  const linksHeading = document.createElement("th");
+  linksHeading.textContent = "Источник";
+  linksRow.append(linksHeading);
+  selected.forEach((job) => {
+    const cell = document.createElement("td");
+    const link = document.createElement("a");
+    link.href = safeJobUrl(job.url, job.source_id);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Открыть ↗";
+    cell.append(link);
+    linksRow.append(cell);
+  });
+  table.append(linksRow);
+  if (typeof dialog.showModal === "function") dialog.showModal();
+}
+
+document.addEventListener("click", (event) => {
+  const compareButton = event.target.closest(".compare-button");
+  if (compareButton) {
+    const url = compareButton.dataset.compareUrl;
+    if (compareUrls.includes(url)) compareUrls = compareUrls.filter((item) => item !== url);
+    else if (compareUrls.length < 3) compareUrls.push(url);
+    render();
+    return;
+  }
+  if (event.target.closest("#open-compare")) openCompareDialog();
+  if (event.target.closest("#clear-compare")) {
+    compareUrls = [];
+    render();
+  }
+  if (event.target.closest("#close-compare")) $("compare-dialog")?.close();
+  const dialog = $("compare-dialog");
+  if (dialog && event.target === dialog) dialog.close();
+});
 
 let currentJobsLayout = "grid";
 try {
@@ -46,6 +145,11 @@ document.addEventListener("click", (event) => {
   event.preventDefault();
   setJobsLayout(button.dataset.layout);
 });
+try {
+  const savedPageSize = Number(localStorage.getItem("aijf_page_size"));
+  if ([10, 20, 50].includes(savedPageSize)) state.pageSize = savedPageSize;
+} catch (_) {}
+
 let currentLanguage = localStorage.getItem("aijf_language") === "en" ? "en" : "ru";
 
 function applyLanguage() {
@@ -545,7 +649,364 @@ function renderPagination(totalItems, totalPages, startIndex, endIndex) {
   });
 }
 
+function readSavedSearches() {
+  try {
+    const value = JSON.parse(localStorage.getItem(SEARCHES_KEY) || "[]");
+    return Array.isArray(value) ? value.filter((item) => item && typeof item.id === "string" && item.filters && typeof item.filters === "object").slice(0, 6) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function persistSavedSearches() {
+  try { localStorage.setItem(SEARCHES_KEY, JSON.stringify(state.savedSearches.slice(0, 6))); } catch (_) {}
+}
+
+function currentSearchSnapshot() {
+  return {
+    query: state.query,
+    location: $("location").value,
+    level: $("level").value,
+    type: $("type").value,
+    sort: $("sort").value,
+    salaryOnly: $("salary-only").checked,
+    noExperienceOnly: $("no-experience-only").checked,
+    noEnglishRequiredOnly: $("no-english-required-only").checked,
+    noDegreeRequiredOnly: $("no-degree-required-only").checked,
+    difficulty: state.difficultyFilter,
+    category: state.quickCategory,
+    source: state.quickSource,
+    view: state.quickView
+  };
+}
+
+function searchSnapshotLabel(filters) {
+  if (filters.query) return filters.query.slice(0, 34);
+  if (filters.category) return ({ support: "Поддержка", admin: "Администрирование", marketing: "Маркетинг", writing: "Тексты", it: "IT", design: "Дизайн" })[filters.category] || "Поиск по категории";
+  if (filters.source) return ({ jobicy: "Jobicy", himalayas: "Himalayas", weworkremotely: "We Work Remotely", remoteok: "Remote OK" })[filters.source] || "Поиск по источнику";
+  if (filters.noExperienceOnly) return "Вакансии без опыта";
+  if (filters.salaryOnly) return "С указанной зарплатой";
+  if (filters.difficulty !== "all") return "Сложность: " + filters.difficulty;
+  if (filters.location !== "worldwide") return "География: " + $("location").selectedOptions[0]?.textContent;
+  return "Мой поиск";
+}
+
+function renderSavedSearches() {
+  const container = $("saved-searches");
+  if (!container) return;
+  container.replaceChildren();
+  if (!state.savedSearches.length) {
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+  const heading = document.createElement("span");
+  heading.className = "saved-searches-label";
+  heading.textContent = "СОХРАНЁННЫЕ ПОИСКИ";
+  container.append(heading);
+  state.savedSearches.forEach((item) => {
+    const group = document.createElement("span");
+    group.className = "saved-search-item";
+    const apply = document.createElement("button");
+    apply.type = "button";
+    apply.className = "saved-search-apply";
+    apply.dataset.applySavedSearch = item.id;
+    apply.textContent = item.name;
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "saved-search-remove";
+    remove.dataset.removeSavedSearch = item.id;
+    remove.setAttribute("aria-label", "Удалить сохранённый поиск: " + item.name);
+    remove.textContent = "×";
+    group.append(apply, remove);
+    container.append(group);
+  });
+}
+
+function applySavedSearch(id) {
+  const item = state.savedSearches.find((saved) => saved.id === id);
+  if (!item) return;
+  const f = item.filters;
+  state.query = String(f.query || "");
+  $("query").value = state.query;
+  $("location").value = ["worldwide", "any", "europe", "americas", "asia"].includes(f.location) ? f.location : "worldwide";
+  $("level").value = ["all", "entry", "intern", "experienced"].includes(f.level) ? f.level : "all";
+  $("type").value = ["all", "full_time", "part_time", "contract", "internship"].includes(f.type) ? f.type : "all";
+  $("sort").value = ["match", "no-experience", "entry", "intern", "easy", "newest", "salary"].includes(f.sort) ? f.sort : "match";
+  $("salary-only").checked = Boolean(f.salaryOnly);
+  $("no-experience-only").checked = Boolean(f.noExperienceOnly);
+  $("no-english-required-only").checked = Boolean(f.noEnglishRequiredOnly);
+  $("no-degree-required-only").checked = Boolean(f.noDegreeRequiredOnly);
+  state.difficultyFilter = ["all", "easy", "medium", "hard"].includes(f.difficulty) ? f.difficulty : "all";
+  state.quickCategory = String(f.category || "");
+  state.quickSource = String(f.source || "");
+  state.quickView = ["all", "today", "favorites", "filtered"].includes(f.view) ? f.view : "all";
+  document.querySelectorAll("[data-difficulty-filter]").forEach((button) => {
+    const active = button.dataset.difficultyFilter === state.difficultyFilter;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  const activeNav = [...document.querySelectorAll("#sidebar-nav .sidebar-link")].find((link) =>
+    (state.quickCategory && link.dataset.category === state.quickCategory) ||
+    (state.quickSource && link.dataset.source === state.quickSource) ||
+    (state.quickView !== "filtered" && state.quickView !== "all" && link.dataset.view === state.quickView)
+  );
+  setSidebarActive(activeNav || document.querySelector('#sidebar-nav [data-view="all"]'));
+  state.currentPage = 1;
+  render();
+}
+
+document.addEventListener("click", (event) => {
+  const save = event.target.closest("[data-save-search]");
+  if (save) {
+    if (state.savedSearches.length >= 6) {
+      save.textContent = "Лимит 6 поисков";
+      return;
+    }
+    const filters = currentSearchSnapshot();
+    const signature = JSON.stringify(filters);
+    if (state.savedSearches.some((item) => JSON.stringify(item.filters) === signature)) {
+      save.textContent = "Уже сохранён";
+      return;
+    }
+    const id = "search-" + Date.now().toString(36);
+    const name = searchSnapshotLabel(filters);
+    state.savedSearches.unshift({ id, name, filters });
+    state.savedSearches = state.savedSearches.slice(0, 6);
+    persistSavedSearches();
+    renderSavedSearches();
+    save.textContent = "Сохранено";
+    return;
+  }
+  const apply = event.target.closest("[data-apply-saved-search]");
+  if (apply) {
+    applySavedSearch(apply.dataset.applySavedSearch);
+    return;
+  }
+  const remove = event.target.closest("[data-remove-saved-search]");
+  if (remove) {
+    state.savedSearches = state.savedSearches.filter((item) => item.id !== remove.dataset.removeSavedSearch);
+    persistSavedSearches();
+    renderSavedSearches();
+  }
+});
+
+function applySharedSearchFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get("filters");
+  if (!raw || raw.length > 3000) return;
+  try {
+    const f = JSON.parse(raw);
+    if (!f || typeof f !== "object" || Array.isArray(f)) return;
+    state.query = typeof f.query === "string" ? f.query.slice(0, 160) : "";
+    $("query").value = state.query;
+    const setSelect = (id, value, fallback) => {
+      const select = $(id);
+      if ([...select.options].some((option) => option.value === value)) select.value = value;
+      else select.value = fallback;
+    };
+    setSelect("location", f.location, "worldwide");
+    setSelect("level", f.level, "all");
+    setSelect("type", f.type, "all");
+    setSelect("sort", f.sort, "match");
+    $("salary-only").checked = Boolean(f.salaryOnly);
+    $("no-experience-only").checked = Boolean(f.noExperienceOnly);
+    $("no-english-required-only").checked = Boolean(f.noEnglishRequiredOnly);
+    $("no-degree-required-only").checked = Boolean(f.noDegreeRequiredOnly);
+    state.difficultyFilter = ["all", "easy", "medium", "hard"].includes(f.difficulty) ? f.difficulty : "all";
+    state.quickCategory = typeof f.category === "string" ? f.category.slice(0, 40) : "";
+    state.quickSource = typeof f.source === "string" ? f.source.slice(0, 40) : "";
+    state.quickView = ["all", "today", "favorites", "filtered"].includes(f.view) ? f.view : "all";
+    document.querySelectorAll("[data-difficulty-filter]").forEach((button) => {
+      const active = button.dataset.difficultyFilter === state.difficultyFilter;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    state.currentPage = 1;
+  } catch (_) {
+    // Ignore malformed shared links and keep the default search.
+  }
+}
+
+function renderActiveFilters() {
+  const container = $("active-filters");
+  if (!container) return;
+  container.replaceChildren();
+
+  const active = [];
+  const add = (key, label) => active.push({ key, label });
+  if (state.query.trim()) add("query", "Поиск: " + state.query.trim());
+  if ($("location").value !== "worldwide") add("location", $("location").selectedOptions[0]?.textContent || "География");
+  if ($("level").value !== "all") add("level", $("level").selectedOptions[0]?.textContent || "Уровень");
+  if ($("type").value !== "all") add("type", $("type").selectedOptions[0]?.textContent || "Занятость");
+  if ($("no-experience-only").checked) add("no-experience-only", "Без обязательного опыта");
+  if ($("salary-only").checked) add("salary-only", "С зарплатой");
+  if ($("no-english-required-only").checked) add("no-english-required-only", "Без обязательного английского");
+  if ($("no-degree-required-only").checked) add("no-degree-required-only", "Без обязательного диплома");
+  if (state.difficultyFilter !== "all") {
+    const labels = { easy: "Лёгкая сложность", medium: "Средняя сложность", hard: "Высокая сложность" };
+    add("difficulty", labels[state.difficultyFilter] || "Сложность");
+  }
+  if (state.quickCategory) {
+    const labels = { support: "Поддержка", admin: "Администрирование", marketing: "Маркетинг", writing: "Тексты", it: "IT" };
+    add("category", labels[state.quickCategory] || "Категория");
+  }
+  if (state.quickSource) {
+    const labels = { jobicy: "Jobicy", himalayas: "Himalayas", weworkremotely: "We Work Remotely", remoteok: "Remote OK" };
+    add("source", labels[state.quickSource] || "Источник");
+  }
+  if (state.quickView === "today") add("today", "Новые сегодня");
+  if (state.quickView === "favorites") add("favorites", "Избранное");
+
+  if (!active.length) {
+    container.hidden = true;
+    return;
+  }
+
+  container.hidden = false;
+  const label = document.createElement("span");
+  label.className = "active-filters-label";
+  label.textContent = currentLanguage === "ru" ? "АКТИВНЫЕ ФИЛЬТРЫ" : "ACTIVE FILTERS";
+  container.append(label);
+
+  active.forEach(({ key, label: value }) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "active-filter-chip";
+    chip.dataset.removeFilter = key;
+    chip.setAttribute("aria-label", (currentLanguage === "ru" ? "Убрать фильтр: " : "Remove filter: ") + value);
+    chip.innerHTML = "<span></span><span aria-hidden=\"true\">×</span>";
+    chip.firstElementChild.textContent = value;
+    container.append(chip);
+  });
+
+  const clear = document.createElement("button");
+  clear.type = "button";
+  clear.className = "active-filters-clear";
+  clear.dataset.removeFilter = "all";
+  clear.textContent = currentLanguage === "ru" ? "Сбросить всё" : "Clear all";
+  container.append(clear);
+
+  const save = document.createElement("button");
+  save.type = "button";
+  save.className = "active-filters-save";
+  save.dataset.saveSearch = "true";
+  save.textContent = "＋ Сохранить поиск";
+  container.append(save);
+
+  const share = document.createElement("button");
+  share.type = "button";
+  share.className = "active-filters-share";
+  share.dataset.shareSearch = "true";
+  share.textContent = "↗ Скопировать ссылку";
+  container.append(share);
+}
+
+document.addEventListener("click", async (event) => {
+  const share = event.target.closest("[data-share-search]");
+  if (share) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("filters", JSON.stringify(currentSearchSnapshot()));
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url.toString());
+      } else {
+        const field = document.createElement("textarea");
+        field.value = url.toString();
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.append(field);
+        field.select();
+        document.execCommand("copy");
+        field.remove();
+      }
+      share.textContent = "Ссылка скопирована";
+    } catch (_) {
+      share.textContent = "Не удалось скопировать";
+    }
+    window.setTimeout(() => { if (share.isConnected) share.textContent = "↗ Скопировать ссылку"; }, 2200);
+    return;
+  }
+  const chip = event.target.closest("[data-remove-filter]");
+  if (!chip) return;
+  const key = chip.dataset.removeFilter;
+  if (key === "all") {
+    resetSearchFilters();
+  } else if (key === "query") {
+    $("query").value = "";
+    state.query = "";
+  } else if (["location", "level", "type"].includes(key)) {
+    const defaults = { location: "worldwide", level: "all", type: "all" };
+    $(key).value = defaults[key];
+  } else if (["salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].includes(key)) {
+    $(key).checked = false;
+  } else if (key === "difficulty") {
+    state.difficultyFilter = "all";
+    document.querySelectorAll("[data-difficulty-filter]").forEach((button) => {
+      const active = button.dataset.difficultyFilter === "all";
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  } else if (key === "category") {
+    state.quickCategory = "";
+    state.quickView = state.quickSource ? "filtered" : "all";
+  } else if (key === "source") {
+    state.quickSource = "";
+    state.quickView = state.quickCategory ? "filtered" : "all";
+  } else if (key === "today" || key === "favorites") {
+    state.quickView = "all";
+  }
+  state.currentPage = 1;
+  if (key !== "all") {
+    const activeNav = document.querySelector("#sidebar-nav .sidebar-link.is-active");
+    if (activeNav && ((key === "category" && activeNav.dataset.category) || (key === "source" && activeNav.dataset.source) || (["today", "favorites"].includes(key) && activeNav.dataset.view === key))) {
+      activeNav.classList.remove("is-active");
+      activeNav.removeAttribute("aria-current");
+    }
+  } else {
+    document.querySelectorAll("#sidebar-nav .sidebar-link").forEach((item) => {
+      const active = item.dataset.view === "all";
+      item.classList.toggle("is-active", active);
+      if (active) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    });
+  }
+  render();
+});
+
+let allJobDetailsExpanded = false;
+
+async function copyTextToClipboard(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const field = document.createElement("textarea");
+  field.value = value;
+  field.setAttribute("readonly", "");
+  field.style.position = "fixed";
+  field.style.opacity = "0";
+  document.body.append(field);
+  field.select();
+  const copied = document.execCommand("copy");
+  field.remove();
+  if (!copied) throw new Error("Clipboard unavailable");
+}
+
+document.addEventListener("click", (event) => {
+  const toggle = event.target.closest("#details-toggle");
+  if (!toggle) return;
+  allJobDetailsExpanded = !allJobDetailsExpanded;
+  document.querySelectorAll("#jobs .job-details").forEach((details) => {
+    details.open = allJobDetailsExpanded;
+  });
+  toggle.setAttribute("aria-pressed", String(allJobDetailsExpanded));
+  toggle.textContent = allJobDetailsExpanded ? "Свернуть подробности" : "Развернуть подробности";
+});
+
 function render() {
+  const pageSizeSelect = $("page-size");
+  if (pageSizeSelect && pageSizeSelect.value !== String(state.pageSize)) pageSizeSelect.value = String(state.pageSize);
   const query = state.query.trim();
   const location = $("location").value;
   const level = $("level").value;
@@ -622,6 +1083,21 @@ function render() {
     return relevanceDifference || jobDate(b) - jobDate(a);
   });
 
+  const insightCounts = {
+    total: filtered.length,
+    entry: filtered.filter((job) => isEntryLevelJob(job)).length,
+    worldwide: filtered.filter((job) => locationMatches(job, "worldwide")).length,
+    recent: filtered.filter((job) => {
+      const published = jobDate(job);
+      const age = Date.now() - published;
+      return published > 0 && age >= 0 && age <= 3 * 86400000;
+    }).length
+  };
+  [["total", "insight-total"], ["entry", "insight-entry"], ["worldwide", "insight-worldwide"], ["recent", "insight-recent"]].forEach(([key, id]) => {
+    const metric = $(id);
+    if (metric) metric.textContent = String(insightCounts[key]);
+  });
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
   state.currentPage = Math.min(Math.max(1, state.currentPage), totalPages);
   const startIndex = (state.currentPage - 1) * state.pageSize;
@@ -687,10 +1163,25 @@ function render() {
         badge.textContent = tag;
         badges.append(badge);
       });
+      const freshness = document.createElement("span");
+      const publishedDate = jobDate(job);
+      const ageDays = publishedDate ? Math.floor((Date.now() - publishedDate) / 86400000) : null;
+      freshness.className = "badge freshness-badge" + (ageDays === 0 ? " is-today" : ageDays !== null && ageDays <= 3 ? " is-recent" : "");
+      freshness.textContent = publishedDate ? (ageDays === 0 ? "● Сегодня" : ageDays === 1 ? "● Вчера" : ageDays <= 3 ? "● Недавно" : getFreshnessLabel(job)) : "Дата не указана";
+      badges.append(freshness);
       card.append(badges);
+
+      const descriptionPreview = cleanText(job.description || "");
+      if (descriptionPreview) {
+        const preview = document.createElement("p");
+        preview.className = "job-description-preview";
+        preview.textContent = descriptionPreview.slice(0, 210) + (descriptionPreview.length > 210 ? "…" : "");
+        card.append(preview);
+      }
 
       const details = document.createElement("details");
       details.className = "job-details";
+      details.open = allJobDetailsExpanded;
       const detailsSummary = document.createElement("summary");
       detailsSummary.textContent = currentLanguage === "ru" ? "Подробности и оценка" : "Details and assessment";
       details.append(detailsSummary);
@@ -811,6 +1302,26 @@ function render() {
       link.target = "_blank";
       link.rel = "noopener noreferrer";
 
+      const copyLink = document.createElement("button");
+      copyLink.type = "button";
+      copyLink.className = "copy-job-link";
+      copyLink.textContent = "↗ Копировать ссылку";
+      copyLink.addEventListener("click", async () => {
+        const originalLabel = "↗ Копировать ссылку";
+        copyLink.disabled = true;
+        try {
+          await copyTextToClipboard(safeJobUrl(job.url, job.source_id));
+          copyLink.textContent = "Ссылка скопирована";
+        } catch (_) {
+          copyLink.textContent = "Не удалось скопировать";
+        } finally {
+          copyLink.disabled = false;
+          window.setTimeout(() => {
+            if (copyLink.isConnected) copyLink.textContent = originalLabel;
+          }, 1800);
+        }
+      });
+
       const favorite = document.createElement("button");
       favorite.type = "button";
       favorite.className = "favorite-button";
@@ -825,7 +1336,11 @@ function render() {
       report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url, job.source_id) + "\nКомпания: " + (job.company_name || "не указана") + "\nОпишите проблему:");
       report.target = "_blank";
       report.rel = "noopener noreferrer";
-      bottom.append(relevance, link, favorite, report);
+      const compare = document.createElement("button");
+      compare.type = "button";
+      compare.className = "compare-button";
+      compare.dataset.compareUrl = safeJobUrl(job.url, job.source_id);
+      bottom.append(relevance, link, copyLink, favorite, compare, report);
       card.append(bottom);
       container.append(card);
     });
@@ -840,6 +1355,8 @@ function render() {
   const countText = filtered.length
     ? "Показано вакансий: " + (startIndex + 1) + "–" + endIndex + " из " + filtered.length + " (всего в базе " + state.jobs.length + ")." + (sourceSummary ? " По источникам: " + sourceSummary + "." : "")
     : "Показано вакансий: 0 из " + state.jobs.length + ".";
+  renderActiveFilters();
+  renderSavedSearches();
   renderPagination(filtered.length, totalPages, startIndex, endIndex);
   $("status").textContent = (state.sourceStatus ? state.sourceStatus + " " : "") + countText;
 
@@ -849,6 +1366,7 @@ function render() {
     button.classList.toggle("is-saved", saved);
   });
   renderTracker();
+  renderCompareTray();
   setJobsLayout(currentJobsLayout);
   applyLanguage();
 }
@@ -1189,6 +1707,15 @@ document.querySelector(".hero-queries")?.addEventListener("click", (event) => {
   $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
+$("page-size")?.addEventListener("change", () => {
+  const nextSize = Number($("page-size").value);
+  if (![10, 20, 50].includes(nextSize)) return;
+  state.pageSize = nextSize;
+  state.currentPage = 1;
+  try { localStorage.setItem("aijf_page_size", String(nextSize)); } catch (_) {}
+  render();
+});
+
 ["location", "level", "type", "sort", "salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].forEach((id) => {
   $(id).addEventListener("change", () => {
     state.currentPage = 1;
@@ -1374,5 +1901,6 @@ document.addEventListener("keydown", (event) => {
 });
 
 setJobsLayout(currentJobsLayout);
+applySharedSearchFromUrl();
 
 loadJobs(false);
