@@ -126,10 +126,13 @@ test("language switch restores the original copy and translates the full rendere
 });
 
 test("UI translation never rewrites employer-provided vacancy content", () => {
-  assert.ok(app.includes('const protectedContent = ".job-card, .tracker-item-info, #compare-table td, #compare-table th:not(:first-child), .translation-output";'));
+  assert.ok(app.includes('const protectedContent = ".job-card .company, .job-card h3, .job-card .meta, .job-card .job-description-preview, .job-card .job-source-tag, .job-card .salary-value, .job-card .translation-output, .tracker-item-info, #compare-table td, #compare-table th:not(:first-child)";'));
   assert.match(app, /parent\.closest\(protectedContent\)/);
   assert.match(app, /element\.closest\(protectedContent\)/);
   assert.doesNotMatch(app, /const protectedContent = "#jobs/);
+  assert.doesNotMatch(app, /const protectedContent = "\.job-card,/);
+  assert.ok(app.includes('badge.className = "badge job-source-tag"'));
+  assert.ok(app.includes('salaryValue.className = "salary-value"'));
   assert.ok(app.includes('card.className = "job-card"'));
   assert.ok(app.includes('company.textContent = job.company_name'));
   assert.ok(app.includes('title.textContent = job.title'));
