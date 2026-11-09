@@ -877,6 +877,36 @@ document.addEventListener("click", async (event) => {
   render();
 });
 
+let allJobDetailsExpanded = false;
+
+async function copyTextToClipboard(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const field = document.createElement("textarea");
+  field.value = value;
+  field.setAttribute("readonly", "");
+  field.style.position = "fixed";
+  field.style.opacity = "0";
+  document.body.append(field);
+  field.select();
+  const copied = document.execCommand("copy");
+  field.remove();
+  if (!copied) throw new Error("Clipboard unavailable");
+}
+
+document.addEventListener("click", (event) => {
+  const toggle = event.target.closest("#details-toggle");
+  if (!toggle) return;
+  allJobDetailsExpanded = !allJobDetailsExpanded;
+  document.querySelectorAll("#jobs .job-details").forEach((details) => {
+    details.open = allJobDetailsExpanded;
+  });
+  toggle.setAttribute("aria-pressed", String(allJobDetailsExpanded));
+  toggle.textContent = allJobDetailsExpanded ? "Свернуть подробности" : "Развернуть подробности";
+});
+
 function render() {
   const pageSizeSelect = $("page-size");
   if (pageSizeSelect && pageSizeSelect.value !== String(state.pageSize)) pageSizeSelect.value = String(state.pageSize);
@@ -1025,6 +1055,7 @@ function render() {
 
       const details = document.createElement("details");
       details.className = "job-details";
+      details.open = allJobDetailsExpanded;
       const detailsSummary = document.createElement("summary");
       detailsSummary.textContent = currentLanguage === "ru" ? "Подробности и оценка" : "Details and assessment";
       details.append(detailsSummary);
@@ -1145,6 +1176,26 @@ function render() {
       link.target = "_blank";
       link.rel = "noopener noreferrer";
 
+      const copyLink = document.createElement("button");
+      copyLink.type = "button";
+      copyLink.className = "copy-job-link";
+      copyLink.textContent = "↗ Копировать ссылку";
+      copyLink.addEventListener("click", async () => {
+        const originalLabel = "↗ Копировать ссылку";
+        copyLink.disabled = true;
+        try {
+          await copyTextToClipboard(safeJobUrl(job.url, job.source_id));
+          copyLink.textContent = "Ссылка скопирована";
+        } catch (_) {
+          copyLink.textContent = "Не удалось скопировать";
+        } finally {
+          copyLink.disabled = false;
+          window.setTimeout(() => {
+            if (copyLink.isConnected) copyLink.textContent = originalLabel;
+          }, 1800);
+        }
+      });
+
       const favorite = document.createElement("button");
       favorite.type = "button";
       favorite.className = "favorite-button";
@@ -1159,7 +1210,7 @@ function render() {
       report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url, job.source_id) + "\nКомпания: " + (job.company_name || "не указана") + "\nОпишите проблему:");
       report.target = "_blank";
       report.rel = "noopener noreferrer";
-      bottom.append(relevance, link, favorite, report);
+      bottom.append(relevance, link, copyLink, favorite, report);
       card.append(bottom);
       container.append(card);
     });
