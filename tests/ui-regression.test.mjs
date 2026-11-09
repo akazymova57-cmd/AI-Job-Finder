@@ -2,9 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [css, html] = await Promise.all([
+const [css, html, app] = await Promise.all([
   readFile(new URL("../styles.css", import.meta.url), "utf8"),
-  readFile(new URL("../index.html", import.meta.url), "utf8")
+  readFile(new URL("../index.html", import.meta.url), "utf8"),
+  readFile(new URL("../app.js", import.meta.url), "utf8")
 ]);
 
 const themeStart = css.lastIndexOf("/* AI Job Finder — graphite and emerald theme */");
@@ -24,7 +25,7 @@ test("responsive shell has explicit mobile drawer and desktop grid breakpoints",
   assert.match(theme, /@media\s*\(min-width:\s*1024px\)/);
   assert.match(theme, /@media\s*\(max-width:\s*1023px\)/);
   assert.match(theme, /body\.sidebar-open/);
-    assert.match(theme, /[.]sidebar-backdrop/);
+  assert.match(theme, /[.]sidebar-backdrop/);
   assert.match(theme, /min-width:\s*0/);
   assert.match(theme, /overflow-x:\s*clip/);
 });
@@ -37,4 +38,12 @@ test("existing application controls remain available to app.js", () => {
   ]) {
     assert.match(html, new RegExp('id="' + id + '"'), `missing #${id}`);
   }
+});
+
+test("mobile drawer supports visibility, focus trapping, and focus restoration", () => {
+  assert.match(theme, /visibility:\s*hidden/);
+  assert.match(theme, /body\.sidebar-open \.filter-sidebar\{visibility:\s*visible/);
+  assert.match(app, /function openSidebar\(\)/);
+  assert.match(app, /event\.key === "Tab"/);
+  assert.match(app, /sidebarToggle\?\.focus\(\)/);
 });
