@@ -151,6 +151,15 @@
             <div><p class="eyebrow">JOB DISCOVERY</p><h2>Подходящие вакансии</h2></div>
             <button id="refresh" class="ghost-button" type="button">↻ Обновить</button>
           </div>
+          <div class="results-tools">
+            <button id="command-open" class="command-trigger" type="button" aria-haspopup="dialog" aria-controls="command-dialog">
+              <span class="command-trigger-icon">⌘</span><span>Быстрые действия</span><kbd>Ctrl K</kbd>
+            </button>
+            <div class="view-switch" role="group" aria-label="Режим отображения вакансий">
+              <button type="button" class="view-button is-active" data-layout="grid" aria-pressed="true" aria-label="Сетка вакансий" title="Сетка">▦</button>
+              <button type="button" class="view-button" data-layout="list" aria-pressed="false" aria-label="Список вакансий" title="Список">☷</button>
+            </div>
+          </div>
           <div id="status" class="status" role="status" aria-live="polite">Загружаем вакансии…</div>
           <nav id="pagination-top" class="pagination" aria-label="Пагинация вакансий сверху" hidden></nav>
           <div id="jobs" class="jobs-grid"></div>
@@ -172,6 +181,25 @@
     </main>
   </div>
 
+  <dialog id="command-dialog" class="command-dialog" aria-labelledby="command-title">
+    <div class="command-shell">
+      <div class="command-heading">
+        <div><p class="eyebrow">AI JOB FINDER / COMMAND CENTER</p><h2 id="command-title">Что будем искать?</h2></div>
+        <button id="command-close" class="command-close" type="button" aria-label="Закрыть">×</button>
+      </div>
+      <label class="command-search-wrap"><span aria-hidden="true">⌕</span><input id="command-search" type="search" autocomplete="off" placeholder="Найти действие или фильтр…"></label>
+      <div id="command-list" class="command-list">
+        <button class="command-item" type="button" data-command="entry"><span class="command-item-icon">↗</span><span><strong>Работа без опыта</strong><small>Начальный уровень и вакансии без обязательного опыта</small></span><kbd>01</kbd></button>
+        <button class="command-item" type="button" data-command="worldwide"><span class="command-item-icon">◎</span><span><strong>Только Worldwide</strong><small>Без привязки к конкретной стране</small></span><kbd>02</kbd></button>
+        <button class="command-item" type="button" data-command="salary"><span class="command-item-icon">$</span><span><strong>Вакансии с зарплатой</strong><small>Показывать предложения с указанной оплатой</small></span><kbd>03</kbd></button>
+        <button class="command-item" type="button" data-command="today"><span class="command-item-icon">◷</span><span><strong>Новые сегодня</strong><small>Свежие публикации за текущий день</small></span><kbd>04</kbd></button>
+        <button class="command-item" type="button" data-command="favorites"><span class="command-item-icon">☆</span><span><strong>Мои сохранённые</strong><small>Открыть избранные вакансии и отклики</small></span><kbd>05</kbd></button>
+        <button class="command-item" type="button" data-command="reset"><span class="command-item-icon">↺</span><span><strong>Сбросить фильтры</strong><small>Вернуться к общему поиску</small></span><kbd>06</kbd></button>
+        <button class="command-item" type="button" data-command="search"><span class="command-item-icon">⌕</span><span><strong>Перейти к поиску</strong><small>Ввести должность, навык или ключевое слово</small></span><kbd>/</kbd></button>
+      </div>
+      <div class="command-footer"><span><kbd>↑</kbd> <kbd>↓</kbd> навигация</span><span><kbd>Enter</kbd> выбрать <kbd>Esc</kbd> закрыть</span></div>
+    </div>
+  </dialog>
   <footer id="about"><span>AI Job Finder</span><span>Источники: Remote OK · Jobicy · We Work Remotely · Himalayas · <a href="https://github.com/akazymova57-cmd/AI-Job-Finder" target="_blank" rel="noopener noreferrer">GitHub проекта</a></span></footer>
   <script src="app.js?v=20261109-emerald-responsive3"></script>
 </body>
