@@ -1087,7 +1087,7 @@ async function translateVacancyDescription(text, targetLanguage) {
       if (!translated.trim()) throw new Error("Empty translation response");
     } catch (googleError) {
       const memoryUrl = "https://api.mymemory.translated.net/get?q=" +
-        encodeURIComponent(chunk.slice(0, 450)) + "&langpair=en|" + encodeURIComponent(targetLanguage);
+        encodeURIComponent(chunk.slice(0, 450)) + "&langpair=autodetect|" + encodeURIComponent(targetLanguage);
       const response = await fetch(memoryUrl, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error("Both translation services are unavailable (HTTP " + response.status + ")");
       const result = await response.json();
