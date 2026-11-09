@@ -6,7 +6,7 @@ Make the published job finder comfortable on mobile and desktop, remove the blue
 ## Goals
 - Replace blue accents with a restrained graphite, warm ivory, and muted emerald palette.
 - Make the sidebar a stable desktop column and a keyboard-accessible off-canvas drawer below the mobile breakpoint.
-- Preserve the existing Worldwide, experience, employment, salary, no-experience, sorting, pagination, and resume-match behavior.
+- Preserve the existing Worldwide, experience, employment, salary, no-experience, sorting, pagination, and resume-match behavior.\n- Add explicit filters for vacancies without a mandatory English requirement and for vacancies where the employer explicitly accepts candidates without a degree.
 - Improve visual hierarchy and focus/hover/selected states consistently across navigation, filters, cards, pagination, and links.
 - Add repeatable static regression checks for theme and responsive layout.
 
@@ -29,7 +29,7 @@ Make the published job finder comfortable on mobile and desktop, remove the blue
 - Keep HTML, CSS, and vanilla JavaScript; do not add runtime dependencies.
 - Use graphite/navy-neutral surfaces, warm off-white page background, emerald as the sole primary accent, and restrained amber/red semantic statuses.
 - Desktop sidebar is a fixed-width grid column from 1024px; below 1024px it becomes an off-canvas drawer with backdrop and Escape support.
-- Retain current search controls and semantics; no unsupported claims such as "no degree required" when a vacancy does not state education requirements.
+- English filtering excludes only explicit mandatory English requirements; preference wording such as "preferred" and "a plus" is not treated as mandatory.\n- Degree filtering includes only explicit statements accepting candidates without a degree or accepting equivalent experience; missing education data is not treated as proof.
 - Use Node's built-in test runner for static theme/layout assertions; no dependency installation.
 
 ## Constraints
