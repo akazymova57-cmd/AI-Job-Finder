@@ -29,6 +29,7 @@ jobs:
           node --check translations/en.js
           node --check translations/ru.js
           node --check scripts/update-jobs.mjs
+          node --test tests/ui-regression.test.mjs
           node -e "const c = require('./config.js'); if (!c.sources.remotive.apiUrl || !c.fraudPatterns.length) process.exit(1)"
       - name: Fetch live sources and validate vacancy snapshot
         run: |

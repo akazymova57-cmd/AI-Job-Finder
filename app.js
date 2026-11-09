@@ -324,6 +324,20 @@ function getEnglishRequirement(job) {
   return "Не указан";
 }
 
+function hasExplicitEnglishRequirement(job) {
+  const sentences = getJobText(job).split(/[.!?\n]+/);
+  const mandatory = /required|mandatory|must have|must be|need(?:ed)? to|fluent in|proficient in|excellent command|strong command|native speaker|обязател|требуется|необходимо|свободно владеть|уверенное владение/i;
+  const optional = /preferred|preferably|nice to have|a plus|bonus|желательно|будет плюсом/i;
+  return sentences.some((sentence) =>
+    /english|английск/i.test(sentence) && mandatory.test(sentence) && !optional.test(sentence)
+  );
+}
+
+function hasExplicitNoDegreeRequirement(job) {
+  const text = getJobText(job);
+  return /no degree required|degree (?:is )?not required|degree optional|without a degree|university degree not required|college degree not required|equivalent experience (?:is )?accepted|degree or equivalent experience|диплом не требуется|без высшего образования|высшее образование не обязательно|образование не требуется/i.test(text);
+}
+
 function getExperienceRequirement(job) {
   const text = getJobText(job);
   if (/no experience|without experience|entry.level|без опыта|опыт не требуется/i.test(text)) return "Без опыта";
@@ -482,6 +496,8 @@ function render() {
   const type = $("type").value;
   const salaryOnly = $("salary-only").checked;
   const noExperienceOnly = $("no-experience-only").checked;
+  const noEnglishRequiredOnly = $("no-english-required-only").checked;
+  const noDegreeRequiredOnly = $("no-degree-required-only").checked;
 
   const filtered = state.jobs.filter((job) => {
     if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
@@ -492,6 +508,8 @@ function render() {
     if (level === "intern" && !internPattern.test(text)) return false;
     if (level === "experienced" && !seniorPattern.test(text)) return false;
     if (noExperienceOnly && hasMandatoryExperienceRequirement(job)) return false;
+    if (noEnglishRequiredOnly && hasExplicitEnglishRequirement(job)) return false;
+    if (noDegreeRequiredOnly && !hasExplicitNoDegreeRequirement(job)) return false;
     if (type !== "all" && job.job_type !== type) return false;
     if (salaryOnly && !job.salary) return false;
     if (state.quickCategory && !categoryMatches(job, state.quickCategory)) return false;
@@ -866,19 +884,56 @@ function setSidebarActive(element) {
   });
 }
 
-function closeSidebar() {
-  document.body.classList.remove("sidebar-open");
-  $("sidebar-open")?.setAttribute("aria-expanded", "false");
+const sidebarToggle = $("sidebar-open");
+const sidebar = document.querySelector(".filter-sidebar");
+
+function openSidebar() {
+  if (!sidebar || !sidebarToggle) return;
+  document.body.classList.add("sidebar-open");
+  sidebarToggle.setAttribute("aria-expanded", "true");
+  sidebar.querySelector("button:not([disabled]), a[href], input:not([disabled]), select:not([disabled])")?.focus();
 }
 
-$("sidebar-open")?.addEventListener("click", () => {
-  document.body.classList.add("sidebar-open");
-  $("sidebar-open").setAttribute("aria-expanded", "true");
-});
+function closeSidebar({ restoreFocus = true } = {}) {
+  const wasOpen = document.body.classList.contains("sidebar-open");
+  document.body.classList.remove("sidebar-open");
+  sidebarToggle?.setAttribute("aria-expanded", "false");
+  if (restoreFocus && wasOpen) sidebarToggle?.focus();
+}
+
+sidebarToggle?.addEventListener("click", openSidebar);
 $("sidebar-close")?.addEventListener("click", closeSidebar);
 $("sidebar-backdrop")?.addEventListener("click", closeSidebar);
+
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeSidebar();
+  if (!document.body.classList.contains("sidebar-open")) return;
+  if (event.key === "Escape") {
+    closeSidebar();
+    return;
+  }
+  if (event.key !== "Tab" || !sidebar) return;
+
+  const focusable = [...sidebar.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )].filter((element) => element.getClientRects().length > 0);
+  if (!focusable.length) {
+    event.preventDefault();
+    sidebarToggle?.focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !sidebar.contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !sidebar.contains(document.activeElement))) {
+    event.preventDefault();
+    first.focus();
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (window.innerWidth >= 1024) closeSidebar({ restoreFocus: false });
 });
 
 $("sidebar-nav")?.addEventListener("click", (event) => {
@@ -903,6 +958,9 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
     $("type").value = "all";
     $("sort").value = "match";
     $("salary-only").checked = false;
+    $("no-experience-only").checked = false;
+    $("no-english-required-only").checked = false;
+    $("no-degree-required-only").checked = false;
     state.quickCategory = "";
     state.quickSource = "";
   } else if (item.dataset.view === "today") {
@@ -933,6 +991,9 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
     $("level").value = "all";
     $("type").value = "all";
     $("salary-only").checked = false;
+    $("no-experience-only").checked = false;
+    $("no-english-required-only").checked = false;
+    $("no-degree-required-only").checked = false;
     $("sort").value = "newest";
     state.quickSource = "";
   } else if (item.dataset.source) {
@@ -985,7 +1046,7 @@ $("search-form").addEventListener("submit", (event) => {
   render();
 });
 
-["location", "level", "type", "sort", "salary-only", "no-experience-only"].forEach((id) => {
+["location", "level", "type", "sort", "salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].forEach((id) => {
   $(id).addEventListener("change", () => {
     state.currentPage = 1;
     render();
