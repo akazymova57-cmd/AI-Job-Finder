@@ -166,10 +166,14 @@ function translateUiValue(value, dictionary) {
 
 function applyLanguage() {
   const dictionary = (window.APP_TRANSLATIONS && window.APP_TRANSLATIONS[currentLanguage]) || {};
+  const protectedContent = "#jobs, #tracker-list, #compare-dialog, .translation-output";
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
-    if (["SCRIPT", "STYLE", "TEXTAREA"].includes(node.parentElement?.tagName)) continue;
+    const parent = node.parentElement;
+    if (!parent || ["SCRIPT", "STYLE", "TEXTAREA", "CODE", "PRE"].includes(parent.tagName)) continue;
+    if (parent.closest(protectedContent)) continue;
+
     let record = originalTextNodes.get(node);
     if (!record || node.nodeValue !== record.output) {
       record = { source: node.nodeValue, output: node.nodeValue };
@@ -183,6 +187,7 @@ function applyLanguage() {
   }
 
   document.querySelectorAll("[placeholder], [aria-label], [title]").forEach((element) => {
+    if (element.closest(protectedContent)) return;
     let originals = originalAttributes.get(element);
     if (!originals) {
       originals = {};
@@ -1315,7 +1320,7 @@ function render() {
       const translationButton = document.createElement("button");
       translationButton.type = "button";
       translationButton.className = "translate-button";
-      const translateLabel = () => currentLanguage === "ru" ? "Перевести описание на русский" : "Translate description to Russian";
+      const translateLabel = () => currentLanguage === "ru" ? "Перевести описание на русский" : "Translate description to English";
       const translationOutput = document.createElement("div");
       translationOutput.className = "translation-output";
       translationOutput.hidden = true;
@@ -1326,7 +1331,8 @@ function render() {
           translationButton.textContent = translateLabel();
           return;
         }
-        const cacheKey = safeJobUrl(job.url, job.source_id) + "|ru";
+        const targetLanguage = currentLanguage;
+        const cacheKey = safeJobUrl(job.url, job.source_id) + "|" + targetLanguage;
         if (vacancyTranslationCache.has(cacheKey)) {
           translationOutput.textContent = vacancyTranslationCache.get(cacheKey);
           translationOutput.hidden = false;
@@ -1339,7 +1345,7 @@ function render() {
         try {
           const sourceText = cleanText(job.description || "");
           if (!sourceText) throw new Error(currentLanguage === "ru" ? "Описание вакансии отсутствует" : "Job description is empty");
-          const translated = await translateVacancyDescription(sourceText, "ru");
+          const translated = await translateVacancyDescription(sourceText, targetLanguage);
           if (!translated) throw new Error(currentLanguage === "ru" ? "Перевод не получен" : "No translation was returned");
           vacancyTranslationCache.set(cacheKey, translated);
           translationOutput.textContent = translated;
