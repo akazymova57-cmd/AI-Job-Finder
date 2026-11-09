@@ -348,3 +348,42 @@ Object.assign(window.APP_TRANSLATIONS.en, {
   "Требования": "Requirements",
   "Работа без границ.": "Work without borders."
 });
+
+
+Object.assign(window.APP_TRANSLATIONS.en, {
+  "AI Job Finder — международная удалённая работа": "AI Job Finder — International Remote Jobs",
+  "Избранное": "Saved jobs",
+  "↻ Обновить": "↻ Refresh",
+  "Быстрые действия": "Quick actions",
+  "навигация": "navigation",
+  "выбрать": "select",
+  "закрыть": "close",
+  "Источники: Remote OK · Jobicy · We Work Remotely · Himalayas ·": "Sources: Remote OK · Jobicy · We Work Remotely · Himalayas ·",
+  "GitHub проекта": "Project on GitHub",
+  "Зарплата": "Salary",
+  "Сложность": "Difficulty",
+  "Параметр": "Parameter",
+  "Вакансия": "Job",
+  "Выбери ещё ": "Select ",
+  "✓ В сравнении": "✓ Added to comparison",
+  "⇄ Сравнить": "⇄ Compare",
+  "Кэш списка от ": "Cached list from ",
+  " при загрузке снимка вакансий": " while loading the job snapshot",
+  " вакансий": " jobs",
+  "Снимок от ": "Snapshot from ",
+  "Не удалось обновить общий список (": "Could not refresh the full job list (",
+  "). Показан последний сохранённый список.": "). Showing the last saved list.",
+  "+ лет": "+ years",
+  " дн. назад": " days ago",
+  "Дизайн": "Design",
+  "Категория": "Category",
+  "● Сегодня": "● Today",
+  "● Вчера": "● Yesterday",
+  "● Недавно": "● Recently",
+  "Открыть на ": "Open on ",
+  "источнике": "source",
+  "\\nКомпания: ": "\\nCompany: ",
+  "\\nОпишите проблему:": "\\nDescribe the issue:",
+  "Переключить на русский": "Switch to Russian",
+  "Переключить на английский": "Switch to English"
+});
