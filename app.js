@@ -1310,6 +1310,7 @@ function render() {
         const salaryBox = document.createElement("div");
         salaryBox.className = "salary-highlight";
         const salaryValue = document.createElement("strong");
+        salaryValue.className = "salary-value";
         salaryValue.textContent = job.salary;
         const salaryLabel = document.createElement("span");
         salaryLabel.textContent = "Зарплата из объявления";
