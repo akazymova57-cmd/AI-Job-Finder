@@ -87,11 +87,11 @@ const experienceHelpers = new Function(
 );
 const makeExperienceHelpers = () => {
   const normalize = (value) => String(value || "").toLowerCase();
-  const clean = (value) => String(value || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim();
+  const clean = (value) => String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   const getText = (job) => normalize([job.title, job.description, ...(job.tags || [])].join(" "));
-  const isEntry = (job) => /\\b(junior|entry.level|intern|trainee|graduate)\\b|стаж[её]р|младш/i.test(normalize(job.title || "")) ||
-    /no experience (?:required|needed)|no prior experience|without experience|entry.level|0\\s*[-–]\\s*1 years?|training (?:will be )?provided|без опыта|опыт не требуется/i.test(normalize(job.description || ""));
-  return experienceHelpers(getText, normalize, clean, /senior|lead|principal|staff engineer|head of|director|руководител/i, /junior|entry[\\s-]?level|no experience|without experience|graduate|trainee|intern(?:ship)?|associate|assistant|coordinator|customer support|support agent|data annotat|virtual assistant|без опыта|начальн\\w*\\s+уровн|стаж[её]р|помощник/i);
+  const isEntry = (job) => /\b(junior|entry.level|intern|trainee|graduate)\b|стаж[её]р|младш/i.test(normalize(job.title || "")) ||
+    /no experience (?:required|needed)|no prior experience|without experience|entry.level|0\s*[-–]\s*1 years?|training (?:will be )?provided|без опыта|опыт не требуется/i.test(normalize(job.description || ""));
+  return experienceHelpers(getText, normalize, clean, /senior|lead|principal|staff engineer|head of|director|руководител/i, /junior|entry[\s-]?level|no experience|without experience|graduate|trainee|intern(?:ship)?|associate|assistant|coordinator|customer support|support agent|data annotat|virtual assistant|без опыта|начальн\w*\s+уровн|стаж[её]р|помощник/i);
 };
 
 test("experience filter respects required years and ignores unrelated preferences", () => {
