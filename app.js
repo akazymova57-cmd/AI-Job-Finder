@@ -326,7 +326,7 @@ function getEnglishRequirement(job) {
 
 function hasExplicitEnglishRequirement(job) {
   const text = getJobText(job);
-  return /(?:english|английск\\w*)[^.\\n]{0,80}(?:required|mandatory|fluent|advanced|proficient|excellent|strong|good command|native|C1|C2|B2|B1|intermediate|обязател|свободн|уверенн|разговорн)|(?:required|mandatory|fluent|advanced|proficient|excellent|strong|native|C1|C2|B2|B1|intermediate|обязател|свободн|уверенн|разговорн)[^.\\n]{0,80}(?:english|английск\\w*)/i.test(text);
+  return /(?:english|английск\w*)[^.\n]{0,80}(?:required|mandatory|fluent|advanced|proficient|excellent|strong|good command|native|C1|C2|B2|B1|intermediate|обязател|свободн|уверенн|разговорн)|(?:required|mandatory|fluent|advanced|proficient|excellent|strong|native|C1|C2|B2|B1|intermediate|обязател|свободн|уверенн|разговорн)[^.\n]{0,80}(?:english|английск\w*)/i.test(text);
 }
 
 function hasExplicitNoDegreeRequirement(job) {
@@ -950,6 +950,9 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
     $("type").value = "all";
     $("sort").value = "match";
     $("salary-only").checked = false;
+    $("no-experience-only").checked = false;
+    $("no-english-required-only").checked = false;
+    $("no-degree-required-only").checked = false;
     state.quickCategory = "";
     state.quickSource = "";
   } else if (item.dataset.view === "today") {
@@ -980,6 +983,9 @@ $("sidebar-nav")?.addEventListener("click", (event) => {
     $("level").value = "all";
     $("type").value = "all";
     $("salary-only").checked = false;
+    $("no-experience-only").checked = false;
+    $("no-english-required-only").checked = false;
+    $("no-degree-required-only").checked = false;
     $("sort").value = "newest";
     state.quickSource = "";
   } else if (item.dataset.source) {
