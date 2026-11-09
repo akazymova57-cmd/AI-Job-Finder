@@ -7,7 +7,7 @@
   <!-- Build refresh: experience sorting 2026-11-09 -->
   <meta name="description" content="AI Job Finder — поиск международных удалённых вакансий с оценкой сложности, языка и совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
-  <link rel="stylesheet" href="styles.css?v=20261109-herorefresh1">
+  <link rel="stylesheet" href="styles.css?v=20261109-difficultyui2">
   <script src="config.js"></script>
   <script src="translations/ru.js"></script>
   <script src="translations/en.js"></script>
@@ -179,6 +179,18 @@
               <button type="button" class="view-button" data-layout="list" aria-pressed="false" aria-label="Список вакансий" title="Список">☷</button>
             </div>
           </div>
+          <section class="difficulty-filter" aria-label="Фильтр по сложности вакансий">
+            <div class="difficulty-filter-heading">
+              <div><span class="difficulty-filter-kicker">SMART MATCH</span><h3>Выбери комфортный уровень</h3></div>
+              <span class="difficulty-filter-hint">Оценка требований вакансии</span>
+            </div>
+            <div class="difficulty-options" role="group" aria-label="Уровень сложности">
+              <button type="button" class="difficulty-option is-active" data-difficulty-filter="all" aria-pressed="true"><span class="difficulty-option-meter meter-all"><i></i><i></i><i></i><i></i><i></i></span><span>Любая</span></button>
+              <button type="button" class="difficulty-option" data-difficulty-filter="easy" aria-pressed="false"><span class="difficulty-option-meter meter-easy"><i></i><i></i><i></i><i></i><i></i></span><span>Лёгкая</span></button>
+              <button type="button" class="difficulty-option" data-difficulty-filter="medium" aria-pressed="false"><span class="difficulty-option-meter meter-medium"><i></i><i></i><i></i><i></i><i></i></span><span>Средняя</span></button>
+              <button type="button" class="difficulty-option" data-difficulty-filter="hard" aria-pressed="false"><span class="difficulty-option-meter meter-hard"><i></i><i></i><i></i><i></i><i></i></span><span>Высокая</span></button>
+            </div>
+          </section>
           <div id="status" class="status" role="status" aria-live="polite">Загружаем вакансии…</div>
           <nav id="pagination-top" class="pagination" aria-label="Пагинация вакансий сверху" hidden></nav>
           <div id="jobs" class="jobs-grid"></div>
@@ -229,6 +241,6 @@
     </div>
   </dialog>
   <footer id="about"><span>AI Job Finder</span><span>Источники: Remote OK · Jobicy · We Work Remotely · Himalayas · <a href="https://github.com/akazymova57-cmd/AI-Job-Finder" target="_blank" rel="noopener noreferrer">GitHub проекта</a></span></footer>
-  <script src="app.js?v=20261109-careertracker1"></script>
+  <script src="app.js?v=20261109-difficultyui2"></script>
 </body>
 </html>
