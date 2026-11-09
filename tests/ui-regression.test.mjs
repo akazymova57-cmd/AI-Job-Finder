@@ -116,7 +116,7 @@ test("no-experience sorting ranks entry-level first and mandatory-experience rol
 
 test("language switch restores the original copy and translates the full rendered interface", () => {
   assert.match(app, /const originalTextNodes = new WeakMap\(\)/);
-  assert.match(app, /currentLanguage === "ru"\s*\? originalTextNodes\.get\(node\)/);
+  assert.match(app, /const nextValue = currentLanguage === "ru"\\s*\\? record\\.source/);
   assert.match(app, /render\(\);\s*applyLanguage\(\);/);
   assert.doesNotMatch(app, /location\.reload\(\)/);
   assert.match(en, /"Сравнение вакансий": "Job comparison"/);
