@@ -866,19 +866,56 @@ function setSidebarActive(element) {
   });
 }
 
-function closeSidebar() {
-  document.body.classList.remove("sidebar-open");
-  $("sidebar-open")?.setAttribute("aria-expanded", "false");
+const sidebarToggle = $("sidebar-open");
+const sidebar = document.querySelector(".filter-sidebar");
+
+function openSidebar() {
+  if (!sidebar || !sidebarToggle) return;
+  document.body.classList.add("sidebar-open");
+  sidebarToggle.setAttribute("aria-expanded", "true");
+  sidebar.querySelector("button:not([disabled]), a[href], input:not([disabled]), select:not([disabled])")?.focus();
 }
 
-$("sidebar-open")?.addEventListener("click", () => {
-  document.body.classList.add("sidebar-open");
-  $("sidebar-open").setAttribute("aria-expanded", "true");
-});
+function closeSidebar({ restoreFocus = true } = {}) {
+  const wasOpen = document.body.classList.contains("sidebar-open");
+  document.body.classList.remove("sidebar-open");
+  sidebarToggle?.setAttribute("aria-expanded", "false");
+  if (restoreFocus && wasOpen) sidebarToggle?.focus();
+}
+
+sidebarToggle?.addEventListener("click", openSidebar);
 $("sidebar-close")?.addEventListener("click", closeSidebar);
 $("sidebar-backdrop")?.addEventListener("click", closeSidebar);
+
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeSidebar();
+  if (!document.body.classList.contains("sidebar-open")) return;
+  if (event.key === "Escape") {
+    closeSidebar();
+    return;
+  }
+  if (event.key !== "Tab" || !sidebar) return;
+
+  const focusable = [...sidebar.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )].filter((element) => element.getClientRects().length > 0);
+  if (!focusable.length) {
+    event.preventDefault();
+    sidebarToggle?.focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !sidebar.contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !sidebar.contains(document.activeElement))) {
+    event.preventDefault();
+    first.focus();
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (window.innerWidth >= 1024) closeSidebar({ restoreFocus: false });
 });
 
 $("sidebar-nav")?.addEventListener("click", (event) => {
