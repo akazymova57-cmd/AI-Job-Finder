@@ -46,6 +46,11 @@ document.addEventListener("click", (event) => {
   event.preventDefault();
   setJobsLayout(button.dataset.layout);
 });
+try {
+  const savedPageSize = Number(localStorage.getItem("aijf_page_size"));
+  if ([10, 20, 50].includes(savedPageSize)) state.pageSize = savedPageSize;
+} catch (_) {}
+
 let currentLanguage = localStorage.getItem("aijf_language") === "en" ? "en" : "ru";
 
 function applyLanguage() {
@@ -1296,6 +1301,15 @@ document.querySelector(".hero-queries")?.addEventListener("click", (event) => {
   $("query").value = chip.dataset.heroQuery || "";
   $("search-form").requestSubmit();
   $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+$("page-size")?.addEventListener("change", () => {
+  const nextSize = Number($("page-size").value);
+  if (![10, 20, 50].includes(nextSize)) return;
+  state.pageSize = nextSize;
+  state.currentPage = 1;
+  try { localStorage.setItem("aijf_page_size", String(nextSize)); } catch (_) {}
+  render();
 });
 
 ["location", "level", "type", "sort", "salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].forEach((id) => {
