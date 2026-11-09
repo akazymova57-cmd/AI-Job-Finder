@@ -986,6 +986,21 @@ function render() {
     return relevanceDifference || jobDate(b) - jobDate(a);
   });
 
+  const insightCounts = {
+    total: filtered.length,
+    entry: filtered.filter((job) => isEntryLevelJob(job)).length,
+    worldwide: filtered.filter((job) => locationMatches(job, "worldwide")).length,
+    recent: filtered.filter((job) => {
+      const published = jobDate(job);
+      const age = Date.now() - published;
+      return published > 0 && age >= 0 && age <= 3 * 86400000;
+    }).length
+  };
+  [["total", "insight-total"], ["entry", "insight-entry"], ["worldwide", "insight-worldwide"], ["recent", "insight-recent"]].forEach(([key, id]) => {
+    const metric = $(id);
+    if (metric) metric.textContent = String(insightCounts[key]);
+  });
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
   state.currentPage = Math.min(Math.max(1, state.currentPage), totalPages);
   const startIndex = (state.currentPage - 1) * state.pageSize;
