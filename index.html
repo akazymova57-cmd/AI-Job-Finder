@@ -7,7 +7,7 @@
   <!-- Build refresh: experience sorting 2026-11-09 -->
   <meta name="description" content="AI Job Finder — поиск международных удалённых вакансий с оценкой сложности, языка и совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
-  <link rel="stylesheet" href="styles.css?v=20261109-careertracker1">
+  <link rel="stylesheet" href="styles.css?v=20261109-herorefresh1">
   <script src="config.js"></script>
   <script src="translations/ru.js"></script>
   <script src="translations/en.js"></script>
@@ -23,14 +23,33 @@
   <div class="app-layout">
     <main class="shell">
       <section class="hero">
-        <p class="eyebrow">GLOBAL REMOTE JOB SEARCH</p>
-        <h1>Работа без границ.<br><span>Возможности со всего мира.</span></h1>
-        <p class="subhead">Находи удалённые вакансии, оценивай требования и понимай, насколько предложение подходит твоему уровню и навыкам.</p>
-        <form id="search-form" class="searchbar">
-          <span class="search-icon" aria-hidden="true">⌕</span>
-          <input id="query" type="search" placeholder="Должность, навык или ключевое слово" aria-label="Поиск вакансий">
-          <button type="submit">Найти вакансии</button>
-        </form>
+        <div class="hero-copy">
+          <div class="hero-kicker"><span class="hero-kicker-dot"></span> GLOBAL REMOTE JOB SEARCH <span class="hero-kicker-divider">/</span> 2026</div>
+          <h1>Твоя следующая<br><span>работа — без границ.</span></h1>
+          <p class="subhead">Международные удалённые вакансии в одном месте. Сравнивай требования, оценивай сложность и находи роли, с которых можно начать.</p>
+          <form id="search-form" class="searchbar">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input id="query" type="search" placeholder="Например: customer support, research, marketing" aria-label="Поиск вакансий">
+            <button type="submit">Найти вакансии <span aria-hidden="true">↗</span></button>
+          </form>
+          <div class="hero-queries" aria-label="Популярные поисковые запросы">
+            <span>Популярное:</span>
+            <button type="button" data-hero-query="customer support">Customer support</button>
+            <button type="button" data-hero-query="no experience">Без опыта</button>
+            <button type="button" data-hero-query="virtual assistant">Virtual assistant</button>
+            <button type="button" data-hero-query="research">Research</button>
+          </div>
+        </div>
+        <div class="hero-orbit" aria-hidden="true">
+          <div class="orbit-ring orbit-ring-one"></div>
+          <div class="orbit-ring orbit-ring-two"></div>
+          <div class="orbit-core"><span>AI</span><i></i></div>
+          <span class="orbit-node orbit-node-one"></span>
+          <span class="orbit-node orbit-node-two"></span>
+          <span class="orbit-node orbit-node-three"></span>
+          <span class="orbit-caption">WORK<br>WITHOUT<br>BORDERS</span>
+        </div>
+        <div class="hero-bottomline"><span>ONE SEARCH. GLOBAL OPPORTUNITIES.</span><span>BUILT FOR YOUR NEXT MOVE <b>↗</b></span></div>
       </section>
 
       <section class="trust-strip" aria-label="Возможности платформы">
