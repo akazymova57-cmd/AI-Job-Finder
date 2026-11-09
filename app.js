@@ -170,10 +170,16 @@ function applyLanguage() {
   let node;
   while ((node = walker.nextNode())) {
     if (["SCRIPT", "STYLE", "TEXTAREA"].includes(node.parentElement?.tagName)) continue;
-    if (!originalTextNodes.has(node)) originalTextNodes.set(node, node.nodeValue);
-    node.nodeValue = currentLanguage === "ru"
-      ? originalTextNodes.get(node)
-      : translateUiValue(originalTextNodes.get(node), dictionary);
+    let record = originalTextNodes.get(node);
+    if (!record || node.nodeValue !== record.output) {
+      record = { source: node.nodeValue, output: node.nodeValue };
+    }
+    const nextValue = currentLanguage === "ru"
+      ? record.source
+      : translateUiValue(record.source, dictionary);
+    node.nodeValue = nextValue;
+    record.output = nextValue;
+    originalTextNodes.set(node, record);
   }
 
   document.querySelectorAll("[placeholder], [aria-label], [title]").forEach((element) => {
@@ -184,11 +190,15 @@ function applyLanguage() {
     }
     ["placeholder", "aria-label", "title"].forEach((attribute) => {
       const value = element.getAttribute(attribute);
-      if (value !== null && originals[attribute] === undefined) originals[attribute] = value;
-      if (originals[attribute] !== undefined) {
-        element.setAttribute(attribute, currentLanguage === "ru"
-          ? originals[attribute]
-          : translateUiValue(originals[attribute], dictionary));
+      let record = originals[attribute];
+      if (!record || value !== record.output) record = { source: value, output: value };
+      if (record.source !== null && record.source !== undefined) {
+        const nextValue = currentLanguage === "ru"
+          ? record.source
+          : translateUiValue(record.source, dictionary);
+        element.setAttribute(attribute, nextValue);
+        record.output = nextValue;
+        originals[attribute] = record;
       }
     });
   });
