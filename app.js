@@ -889,6 +889,7 @@ function renderActiveFilters() {
   if ($("location").value !== "worldwide") add("location", $("location").selectedOptions[0]?.textContent || "География");
   if ($("level").value !== "all") add("level", $("level").selectedOptions[0]?.textContent || "Уровень");
   if ($("type").value !== "all") add("type", $("type").selectedOptions[0]?.textContent || "Занятость");
+  if ($("sort").value !== "match") add("sort", "Сортировка: " + ($("sort").selectedOptions[0]?.textContent || "Выбрана"));
   if ($("no-experience-only").checked) add("no-experience-only", "Без обязательного опыта");
   if ($("salary-only").checked) add("salary-only", "С зарплатой");
   if ($("no-english-required-only").checked) add("no-english-required-only", "Без обязательного английского");
@@ -988,6 +989,8 @@ document.addEventListener("click", async (event) => {
   } else if (["location", "level", "type"].includes(key)) {
     const defaults = { location: "worldwide", level: "all", type: "all" };
     $(key).value = defaults[key];
+  } else if (key === "sort") {
+    $("sort").value = "match";
   } else if (["salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].includes(key)) {
     $(key).checked = false;
   } else if (key === "difficulty") {
