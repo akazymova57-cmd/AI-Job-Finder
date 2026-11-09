@@ -660,6 +660,12 @@ function render() {
       });
       card.append(badges);
 
+      const details = document.createElement("details");
+      details.className = "job-details";
+      const detailsSummary = document.createElement("summary");
+      detailsSummary.textContent = currentLanguage === "ru" ? "Подробности и оценка" : "Details and assessment";
+      details.append(detailsSummary);
+
       const difficulty = getJobDifficulty(job);
       const insights = document.createElement("div");
       insights.className = "job-insights";
@@ -676,7 +682,7 @@ function render() {
       insights.append(createInsight("Английский · требование", getEnglishRequirement(job)));
       insights.append(createInsight("Опыт · требование", getExperienceRequirement(job)));
       insights.append(createInsight("Опубликована", getFreshnessLabel(job)));
-      card.append(insights);
+      details.append(insights);
 
       if (job.salary) {
         const salaryBox = document.createElement("div");
@@ -686,7 +692,7 @@ function render() {
         const salaryLabel = document.createElement("span");
         salaryLabel.textContent = "Зарплата из объявления";
         salaryBox.append(salaryValue, salaryLabel);
-        card.append(salaryBox);
+        details.append(salaryBox);
       }
 
       const translationButton = document.createElement("button");
@@ -717,7 +723,7 @@ function render() {
           translationButton.disabled = false;
         }
       });
-      card.append(translationButton, translationOutput);
+      details.append(translationButton, translationOutput);
 
       if (state.resumeSkills.length) {
         const match = getResumeMatch(job);
@@ -750,13 +756,15 @@ function render() {
           missingLine.textContent = "Не найдено: " + (match.missing.length ? match.missing.join(", ") : "все распознанные навыки найдены");
           matchDetails.append(row, track, matchedLine, missingLine);
         }
-        card.append(matchDetails);
+        details.append(matchDetails);
       } else {
         const hint = document.createElement("div");
         hint.className = "match-details";
         hint.textContent = "Добавь резюме, чтобы увидеть совпадение навыков.";
-        card.append(hint);
+        details.append(hint);
       }
+
+      card.append(details);
 
       const bottom = document.createElement("div");
       bottom.className = "card-bottom";
