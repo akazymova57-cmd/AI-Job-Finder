@@ -1128,4 +1128,120 @@ $("clear-resume").addEventListener("click", () => {
   updateResumeProfile();
 });
 
+
+/* Lightweight command center and results layout controls */
+const commandDialog = $("command-dialog");
+const commandSearch = $("command-search");
+const commandItems = [...document.querySelectorAll(".command-item")];
+
+function openCommandCenter() {
+  if (!commandDialog || commandDialog.open) return;
+  commandDialog.showModal();
+  commandSearch.value = "";
+  commandItems.forEach((item) => { item.hidden = false; });
+  requestAnimationFrame(() => commandSearch.focus());
+}
+
+function closeCommandCenter() {
+  if (commandDialog?.open) commandDialog.close();
+  $("command-open")?.focus();
+}
+
+$("command-open")?.addEventListener("click", openCommandCenter);
+$("command-close")?.addEventListener("click", closeCommandCenter);
+commandDialog?.addEventListener("click", (event) => {
+  if (event.target === commandDialog) closeCommandCenter();
+});
+
+commandSearch?.addEventListener("input", () => {
+  const query = normalizeText(commandSearch.value);
+  commandItems.forEach((item) => {
+    item.hidden = query && !normalizeText(item.textContent).includes(query);
+  });
+});
+
+function resetSearchFilters() {
+  $("query").value = "";
+  state.query = "";
+  $("location").value = "worldwide";
+  $("level").value = "all";
+  $("type").value = "all";
+  $("sort").value = "match";
+  ["salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].forEach((id) => { $(id).checked = false; });
+  state.quickCategory = "";
+  state.quickSource = "";
+  state.quickView = "all";
+  state.currentPage = 1;
+  document.querySelectorAll("#sidebar-nav .sidebar-link").forEach((item) => {
+    item.classList.toggle("is-active", item.dataset.view === "all");
+    if (item.dataset.view === "all") item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
+  });
+}
+
+function runCommand(command) {
+  if (command === "entry") {
+    resetSearchFilters();
+    $("level").value = "entry";
+    $("no-experience-only").checked = true;
+  } else if (command === "worldwide") {
+    resetSearchFilters();
+  } else if (command === "salary") {
+    resetSearchFilters();
+    $("salary-only").checked = true;
+  } else if (command === "today") {
+    resetSearchFilters();
+    state.quickView = "today";
+    $("sort").value = "newest";
+  } else if (command === "favorites") {
+    resetSearchFilters();
+    state.quickView = "favorites";
+    $("location").value = "any";
+    setSidebarActive(document.querySelector('#sidebar-nav [data-view="favorites"]'));
+  } else if (command === "reset") {
+    resetSearchFilters();
+  } else if (command === "search") {
+    closeCommandCenter();
+    $("query").focus();
+    $("query").scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  render();
+  closeCommandCenter();
+  $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+commandItems.forEach((item) => item.addEventListener("click", () => runCommand(item.dataset.command)));
+
+document.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    if (commandDialog?.open) closeCommandCenter();
+    else openCommandCenter();
+  }
+  if (event.key === "/" && !commandDialog?.open && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+    event.preventDefault();
+    openCommandCenter();
+  }
+});
+
+function setJobsLayout(layout) {
+  const jobs = $("jobs");
+  const validLayout = layout === "list" ? "list" : "grid";
+  jobs.classList.toggle("is-list-view", validLayout === "list");
+  document.querySelectorAll(".view-button").forEach((button) => {
+    const active = button.dataset.layout === validLayout;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  try { localStorage.setItem("aijf_jobs_layout", validLayout); } catch (_) {}
+}
+
+document.querySelectorAll(".view-button").forEach((button) => {
+  button.addEventListener("click", () => setJobsLayout(button.dataset.layout));
+});
+let savedLayout = "grid";
+try { savedLayout = localStorage.getItem("aijf_jobs_layout") || "grid"; } catch (_) {}
+setJobsLayout(savedLayout);
+
 loadJobs(false);
