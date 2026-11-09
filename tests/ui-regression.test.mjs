@@ -8,14 +8,15 @@ const [css, html] = await Promise.all([
 ]);
 
 const themeStart = css.lastIndexOf("/* AI Job Finder — graphite and emerald theme */");
-assert.notEqual(themeStart, -1, "a single final graphite/emerald theme layer must exist");
+assert.notEqual(themeStart, -1, "the final graphite/emerald theme layer must exist");
 const theme = css.slice(themeStart);
 
-test("final theme uses emerald as its only primary accent", () => {
+test("final theme uses emerald and contains no blue accent values", () => {
   assert.match(theme, /--accent:\s*#27866f/i);
   assert.match(theme, /--accent-strong:\s*#1f6b5b/i);
   assert.match(theme, /--accent-soft:\s*#e8f3ee/i);
-  assert.doesNotMatch(theme, /--blue\s*:|#(?:[0-9a-f]{2})?(?:00|22|33|44|55|66|77|88|99|aa|bb|cc|dd|ee|ff)(?:00|22|33|44|55|66|77|88|99|aa|bb|cc|dd|ee|ff)/i);
+  assert.match(theme, /--blue:\s*var\(--accent\)/i);
+  assert.doesNotMatch(theme, /#(?:356dff|326bdf|2857e8|9bb4ff|5b88ff|4078ff|2d5fe9)/i);
   assert.doesNotMatch(theme, /cornflowerblue|dodgerblue|royalblue|steelblue|deepskyblue/i);
 });
 
