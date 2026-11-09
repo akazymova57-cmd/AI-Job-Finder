@@ -325,8 +325,12 @@ function getEnglishRequirement(job) {
 }
 
 function hasExplicitEnglishRequirement(job) {
-  const text = getJobText(job);
-  return /(?:english|английск\w*)[^.\n]{0,80}(?:required|mandatory|fluent|advanced|proficient|excellent|strong|good command|native|C1|C2|B2|B1|intermediate|обязател|свободн|уверенн|разговорн)|(?:required|mandatory|fluent|advanced|proficient|excellent|strong|native|C1|C2|B2|B1|intermediate|обязател|свободн|уверенн|разговорн)[^.\n]{0,80}(?:english|английск\w*)/i.test(text);
+  const sentences = getJobText(job).split(/[.!?\n]+/);
+  const mandatory = /required|mandatory|must have|must be|need(?:ed)? to|fluent in|proficient in|excellent command|strong command|native speaker|обязател|требуется|необходимо|свободно владеть|уверенное владение/i;
+  const optional = /preferred|preferably|nice to have|a plus|bonus|желательно|будет плюсом/i;
+  return sentences.some((sentence) =>
+    /english|английск/i.test(sentence) && mandatory.test(sentence) && !optional.test(sentence)
+  );
 }
 
 function hasExplicitNoDegreeRequirement(job) {
