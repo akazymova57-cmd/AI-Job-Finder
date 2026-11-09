@@ -660,6 +660,12 @@ function render() {
       });
       card.append(badges);
 
+      const details = document.createElement("details");
+      details.className = "job-details";
+      const detailsSummary = document.createElement("summary");
+      detailsSummary.textContent = currentLanguage === "ru" ? "Подробности и оценка" : "Details and assessment";
+      details.append(detailsSummary);
+
       const difficulty = getJobDifficulty(job);
       const insights = document.createElement("div");
       insights.className = "job-insights";
@@ -676,7 +682,7 @@ function render() {
       insights.append(createInsight("Английский · требование", getEnglishRequirement(job)));
       insights.append(createInsight("Опыт · требование", getExperienceRequirement(job)));
       insights.append(createInsight("Опубликована", getFreshnessLabel(job)));
-      card.append(insights);
+      details.append(insights);
 
       if (job.salary) {
         const salaryBox = document.createElement("div");
@@ -686,7 +692,7 @@ function render() {
         const salaryLabel = document.createElement("span");
         salaryLabel.textContent = "Зарплата из объявления";
         salaryBox.append(salaryValue, salaryLabel);
-        card.append(salaryBox);
+        details.append(salaryBox);
       }
 
       const translationButton = document.createElement("button");
@@ -717,7 +723,7 @@ function render() {
           translationButton.disabled = false;
         }
       });
-      card.append(translationButton, translationOutput);
+      details.append(translationButton, translationOutput);
 
       if (state.resumeSkills.length) {
         const match = getResumeMatch(job);
@@ -750,13 +756,15 @@ function render() {
           missingLine.textContent = "Не найдено: " + (match.missing.length ? match.missing.join(", ") : "все распознанные навыки найдены");
           matchDetails.append(row, track, matchedLine, missingLine);
         }
-        card.append(matchDetails);
+        details.append(matchDetails);
       } else {
         const hint = document.createElement("div");
         hint.className = "match-details";
         hint.textContent = "Добавь резюме, чтобы увидеть совпадение навыков.";
-        card.append(hint);
+        details.append(hint);
       }
+
+      card.append(details);
 
       const bottom = document.createElement("div");
       bottom.className = "card-bottom";
@@ -816,6 +824,8 @@ function render() {
 }
 
 
+let trackerFilter = "all";
+
 const APPLICATION_STATUSES = [
   ["saved", "В избранном"],
   ["planned", "Планирую откликнуться"],
@@ -845,25 +855,82 @@ function persistSavedJobs() {
 function renderTracker() {
   const list = $("tracker-list");
   const count = $("tracker-count");
+  const stats = $("tracker-stats");
+  const filters = $("tracker-filters");
   if (!list || !count) return;
-  count.textContent = state.savedJobs.length + " вакансий";
+
+  const total = state.savedJobs.length;
+  const countByStatus = (status) => state.savedJobs.filter((job) => (job.status || "saved") === status).length;
+  const stages = [["saved", "В избранном"], ["planned", "В планах"], ["applied", "Отклики"], ["interview", "Интервью"], ["accepted", "Офферы"]];
+  count.textContent = total + " " + (total === 1 ? "вакансия" : "вакансий");
+
+  if (stats) {
+    stats.replaceChildren();
+    stages.forEach(([status, label]) => {
+      const tile = document.createElement("div");
+      tile.className = "tracker-stat tracker-stat-" + status;
+      const value = document.createElement("strong");
+      value.textContent = String(countByStatus(status));
+      const caption = document.createElement("span");
+      caption.textContent = label;
+      tile.append(value, caption);
+      stats.append(tile);
+    });
+    const progress = document.createElement("div");
+    progress.className = "tracker-progress";
+    progress.setAttribute("role", "img");
+    const progressed = ["applied", "interview", "accepted"].reduce((sum, status) => sum + countByStatus(status), 0);
+    progress.setAttribute("aria-label", progressed + " откликов продвинулись по этапам из " + total + " сохранённых вакансий");
+    const fill = document.createElement("span");
+    fill.style.width = (total ? Math.round(progressed / total * 100) : 0) + "%";
+    progress.append(fill);
+    stats.append(progress);
+  }
+  filters?.querySelectorAll("[data-tracker-filter]").forEach((button) => {
+    const active = button.dataset.trackerFilter === trackerFilter;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
   list.replaceChildren();
-  if (!state.savedJobs.length) {
-    const empty = document.createElement("p");
-    empty.className = "tracker-empty";
-    empty.textContent = "Сохраняй вакансии кнопкой «В избранное», чтобы вести список откликов.";
+  const visibleJobs = trackerFilter === "all" ? state.savedJobs : state.savedJobs.filter((job) => (job.status || "saved") === trackerFilter);
+  if (!total) {
+    const empty = document.createElement("div");
+    empty.className = "tracker-empty tracker-empty-state";
+    const icon = document.createElement("span");
+    icon.className = "tracker-empty-icon";
+    icon.textContent = "✳";
+    const title = document.createElement("strong");
+    title.textContent = "Твой карьерный трекер начинается здесь";
+    const message = document.createElement("p");
+    message.textContent = "Сохраняй интересные вакансии — здесь появится личная доска поиска и откликов.";
+    empty.append(icon, title, message);
     list.append(empty);
     return;
   }
-  state.savedJobs.forEach((job) => {
+  if (!visibleJobs.length) {
+    const empty = document.createElement("p");
+    empty.className = "tracker-empty";
+    empty.textContent = "На этом этапе пока нет вакансий. Измени статус одной из сохранённых вакансий.";
+    list.append(empty);
+    return;
+  }
+
+  visibleJobs.forEach((job) => {
     const item = document.createElement("article");
     item.className = "tracker-item";
     const info = document.createElement("div");
+    info.className = "tracker-item-info";
     const title = document.createElement("h3");
     title.textContent = job.title || "Вакансия без названия";
     const company = document.createElement("p");
-    company.textContent = job.company || "Компания не указана";
+    company.textContent = [job.company || "Компания не указана", job.source_name || ""].filter(Boolean).join(" · ");
     info.append(title, company);
+
+    const statusWrap = document.createElement("label");
+    statusWrap.className = "tracker-status-wrap";
+    const statusLabel = document.createElement("span");
+    statusLabel.textContent = "ЭТАП";
     const select = document.createElement("select");
     select.setAttribute("aria-label", "Статус отклика: " + title.textContent);
     APPLICATION_STATUSES.forEach(([value, label]) => {
@@ -875,32 +942,42 @@ function renderTracker() {
     select.value = job.status || "saved";
     select.addEventListener("change", () => {
       job.status = select.value;
+      job.updatedAt = new Date().toISOString();
       persistSavedJobs();
+      renderTracker();
     });
+    statusWrap.append(statusLabel, select);
+
     const actions = document.createElement("div");
-    actions.style.display = "flex";
-    actions.style.gap = "8px";
-    actions.style.flexWrap = "wrap";
+    actions.className = "tracker-item-actions";
     const link = document.createElement("a");
     link.href = safeJobUrl(job.url, job.source_id);
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    link.textContent = "Первоисточник ↗";
+    link.textContent = "Открыть ↗";
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "favorite-button";
     remove.textContent = "Убрать";
+    remove.setAttribute("aria-label", "Убрать из избранного: " + title.textContent);
     remove.addEventListener("click", () => {
       state.savedJobs = state.savedJobs.filter((saved) => saved.url !== job.url);
       persistSavedJobs();
       render();
     });
     actions.append(link, remove);
-    item.append(info, select, actions);
+    item.append(info, statusWrap, actions);
     list.append(item);
   });
 }
 
+
+$("tracker-filters")?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-tracker-filter]");
+  if (!button) return;
+  trackerFilter = button.dataset.trackerFilter || "all";
+  renderTracker();
+});
 
 function setSidebarActive(element) {
   document.querySelectorAll("#sidebar-nav .sidebar-link").forEach((link) => {
@@ -1058,6 +1135,7 @@ $("jobs").addEventListener("click", (event) => {
       title: source.title || "Вакансия без названия",
       company: source.company_name || "Компания не указана",
       status: "saved",
+      savedAt: new Date().toISOString(),
       source_id: source.source_id,
       source_name: source.source_name
     });
@@ -1071,6 +1149,14 @@ $("search-form").addEventListener("submit", (event) => {
   state.currentPage = 1;
   state.query = $("query").value;
   render();
+});
+
+document.querySelector(".hero-queries")?.addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-hero-query]");
+  if (!chip) return;
+  $("query").value = chip.dataset.heroQuery || "";
+  $("search-form").requestSubmit();
+  $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 ["location", "level", "type", "sort", "salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].forEach((id) => {
@@ -1127,5 +1213,134 @@ $("clear-resume").addEventListener("click", () => {
   $("resume-file-name").textContent = "";
   updateResumeProfile();
 });
+
+
+/* Lightweight command center and results layout controls */
+const commandDialog = $("command-dialog");
+const commandSearch = $("command-search");
+const commandItems = [...document.querySelectorAll(".command-item")];
+
+function openCommandCenter() {
+  if (!commandDialog || commandDialog.open) return;
+  commandDialog.showModal();
+  commandSearch.value = "";
+  commandItems.forEach((item) => { item.hidden = false; });
+  requestAnimationFrame(() => commandSearch.focus());
+}
+
+function closeCommandCenter() {
+  if (commandDialog?.open) commandDialog.close();
+  $("command-open")?.focus();
+}
+
+$("command-open")?.addEventListener("click", openCommandCenter);
+$("command-close")?.addEventListener("click", closeCommandCenter);
+commandDialog?.addEventListener("click", (event) => {
+  if (event.target === commandDialog) closeCommandCenter();
+});
+
+commandSearch?.addEventListener("input", () => {
+  const query = normalizeText(commandSearch.value);
+  commandItems.forEach((item) => {
+    item.hidden = query && !normalizeText(item.textContent).includes(query);
+  });
+});
+
+commandDialog?.addEventListener("keydown", (event) => {
+  if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
+  const visibleItems = commandItems.filter((item) => !item.hidden);
+  if (!visibleItems.length) return;
+  event.preventDefault();
+  const currentIndex = visibleItems.indexOf(document.activeElement);
+  const direction = event.key === "ArrowDown" ? 1 : -1;
+  const nextIndex = currentIndex < 0
+    ? (direction > 0 ? 0 : visibleItems.length - 1)
+    : (currentIndex + direction + visibleItems.length) % visibleItems.length;
+  visibleItems[nextIndex].focus();
+});
+
+function resetSearchFilters() {
+  $("query").value = "";
+  state.query = "";
+  $("location").value = "worldwide";
+  $("level").value = "all";
+  $("type").value = "all";
+  $("sort").value = "match";
+  ["salary-only", "no-experience-only", "no-english-required-only", "no-degree-required-only"].forEach((id) => { $(id).checked = false; });
+  state.quickCategory = "";
+  state.quickSource = "";
+  state.quickView = "all";
+  state.currentPage = 1;
+  document.querySelectorAll("#sidebar-nav .sidebar-link").forEach((item) => {
+    item.classList.toggle("is-active", item.dataset.view === "all");
+    if (item.dataset.view === "all") item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
+  });
+}
+
+function runCommand(command) {
+  if (command === "entry") {
+    resetSearchFilters();
+    $("level").value = "entry";
+    $("no-experience-only").checked = true;
+  } else if (command === "worldwide") {
+    resetSearchFilters();
+  } else if (command === "salary") {
+    resetSearchFilters();
+    $("salary-only").checked = true;
+  } else if (command === "today") {
+    resetSearchFilters();
+    state.quickView = "today";
+    $("sort").value = "newest";
+  } else if (command === "favorites") {
+    resetSearchFilters();
+    state.quickView = "favorites";
+    $("location").value = "any";
+    setSidebarActive(document.querySelector('#sidebar-nav [data-view="favorites"]'));
+  } else if (command === "reset") {
+    resetSearchFilters();
+  } else if (command === "search") {
+    closeCommandCenter();
+    $("query").focus();
+    $("query").scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  render();
+  closeCommandCenter();
+  $("results-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+commandItems.forEach((item) => item.addEventListener("click", () => runCommand(item.dataset.command)));
+
+document.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    if (commandDialog?.open) closeCommandCenter();
+    else openCommandCenter();
+  }
+  if (event.key === "/" && !commandDialog?.open && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+    event.preventDefault();
+    openCommandCenter();
+  }
+});
+
+function setJobsLayout(layout) {
+  const jobs = $("jobs");
+  const validLayout = layout === "list" ? "list" : "grid";
+  jobs.classList.toggle("is-list-view", validLayout === "list");
+  document.querySelectorAll(".view-button").forEach((button) => {
+    const active = button.dataset.layout === validLayout;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  try { localStorage.setItem("aijf_jobs_layout", validLayout); } catch (_) {}
+}
+
+document.querySelectorAll(".view-button").forEach((button) => {
+  button.addEventListener("click", () => setJobsLayout(button.dataset.layout));
+});
+let savedLayout = "grid";
+try { savedLayout = localStorage.getItem("aijf_jobs_layout") || "grid"; } catch (_) {}
+setJobsLayout(savedLayout);
 
 loadJobs(false);
