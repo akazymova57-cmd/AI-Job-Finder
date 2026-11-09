@@ -7,7 +7,7 @@
   <!-- Build refresh: experience sorting 2026-11-09 -->
   <meta name="description" content="AI Job Finder — поиск международных удалённых вакансий с оценкой сложности, языка и совпадения навыков.">
   <title>AI Job Finder — международная удалённая работа</title>
-  <link rel="stylesheet" href="styles.css?v=20261109-quickview1">
+  <link rel="stylesheet" href="styles.css?v=20261109-careertracker1">
   <script src="config.js"></script>
   <script src="translations/ru.js"></script>
   <script src="translations/en.js"></script>
@@ -173,6 +173,15 @@
           <div><p class="eyebrow">YOUR APPLICATIONS</p><h2 id="tracker-title">Избранное и отклики</h2></div>
           <span id="tracker-count" class="tracker-count">0 вакансий</span>
         </div>
+        <div id="tracker-stats" class="tracker-stats" aria-label="Статистика откликов"></div>
+        <div id="tracker-filters" class="tracker-filters" role="group" aria-label="Фильтр по статусу">
+          <button type="button" class="tracker-filter is-active" data-tracker-filter="all" aria-pressed="true">Все</button>
+          <button type="button" class="tracker-filter" data-tracker-filter="saved" aria-pressed="false">Избранное</button>
+          <button type="button" class="tracker-filter" data-tracker-filter="planned" aria-pressed="false">В планах</button>
+          <button type="button" class="tracker-filter" data-tracker-filter="applied" aria-pressed="false">Откликнулся</button>
+          <button type="button" class="tracker-filter" data-tracker-filter="interview" aria-pressed="false">Собеседования</button>
+          <button type="button" class="tracker-filter" data-tracker-filter="accepted" aria-pressed="false">Офферы</button>
+        </div>
         <div id="tracker-list" class="tracker-list"><p class="tracker-empty">Сохраняй вакансии кнопкой «В избранное», чтобы вести список откликов.</p></div>
         <p class="privacy-footnote">Избранное и статусы хранятся только в localStorage этого браузера.</p>
       </section>
@@ -201,6 +210,6 @@
     </div>
   </dialog>
   <footer id="about"><span>AI Job Finder</span><span>Источники: Remote OK · Jobicy · We Work Remotely · Himalayas · <a href="https://github.com/akazymova57-cmd/AI-Job-Finder" target="_blank" rel="noopener noreferrer">GitHub проекта</a></span></footer>
-  <script src="app.js?v=20261109-quickview1"></script>
+  <script src="app.js?v=20261109-careertracker1"></script>
 </body>
 </html>
