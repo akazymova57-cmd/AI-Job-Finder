@@ -125,6 +125,16 @@ test("language switch restores the original copy and translates the full rendere
   assert.match(en, /"Без обязательного английского": "No mandatory English"/);
 });
 
+test("UI translation never rewrites employer-provided vacancy content", () => {
+  assert.match(app, /const protectedContent = "\\.job-card, \.tracker-item-info, #compare-table td, #compare-table th:not\(:first-child\), \.translation-output"/);
+  assert.match(app, /parent\.closest\(protectedContent\)/);
+  assert.match(app, /element\.closest\(protectedContent\)/);
+  assert.doesNotMatch(app, /const protectedContent = "#jobs/);
+  assert.ok(app.includes('card.className = "job-card"'));
+  assert.ok(app.includes('company.textContent = job.company_name'));
+  assert.ok(app.includes('title.textContent = job.title'));
+});
+
 test("vacancy translation uses automatic language detection, chunking and a fallback provider", () => {
   assert.match(app, /function translateVacancyDescription\(text, targetLanguage\)/);
   assert.match(app, /translate\.googleapis\.com\/translate_a\/single/);
