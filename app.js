@@ -1160,6 +1160,19 @@ commandSearch?.addEventListener("input", () => {
   });
 });
 
+commandDialog?.addEventListener("keydown", (event) => {
+  if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
+  const visibleItems = commandItems.filter((item) => !item.hidden);
+  if (!visibleItems.length) return;
+  event.preventDefault();
+  const currentIndex = visibleItems.indexOf(document.activeElement);
+  const direction = event.key === "ArrowDown" ? 1 : -1;
+  const nextIndex = currentIndex < 0
+    ? (direction > 0 ? 0 : visibleItems.length - 1)
+    : (currentIndex + direction + visibleItems.length) % visibleItems.length;
+  visibleItems[nextIndex].focus();
+});
+
 function resetSearchFilters() {
   $("query").value = "";
   state.query = "";
