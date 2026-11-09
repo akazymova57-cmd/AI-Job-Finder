@@ -556,3 +556,7 @@ footer a{color:#236d58}
 .details-toggle{border:1px solid #dbe6de;border-radius:9px;padding:8px 11px;background:#fff;color:#486451;font-size:10px;font-weight:750;cursor:pointer;transition:background .18s,border-color .18s,color .18s}.details-toggle:hover,.details-toggle[aria-pressed="true"]{border-color:#a8c8b0;background:#eff6f0;color:#1e6240}.details-toggle:focus-visible,.copy-job-link:focus-visible{outline:2px solid #9dc8aa;outline-offset:2px}
 .copy-job-link{border:1px solid #dce6e0;border-radius:9px;padding:8px 10px;background:#fff;color:#496353;font-size:10px;font-weight:700;cursor:pointer}.copy-job-link:hover{border-color:#a8c8b0;background:#f1f7f2}.copy-job-link:disabled{opacity:.6;cursor:wait}
 @media(max-width:640px){.details-toggle{order:3;width:100%}.copy-job-link{width:100%}}
+
+.freshness-badge{background:#f4f6f4;color:#78857a;border-color:#e6ebe6}.freshness-badge.is-today{background:#eaf6ee;color:#216b42;border-color:#cde6d4}.freshness-badge.is-recent{background:#f0f6f1;color:#4e7658;border-color:#dce9de}
+.job-description-preview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:10px 0 12px;color:#657168;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:640px){.job-description-preview{font-size:11px;-webkit-line-clamp:3}}
