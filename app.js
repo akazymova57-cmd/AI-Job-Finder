@@ -85,14 +85,38 @@ const internPattern = /intern(?:ship)?|trainee|стаж[её]ровк|стаж[�
 const seniorPattern = /senior|lead|principal|staff engineer|head of|director|высококвалифицированн|руководител[ья]/i;
 
 function hasMandatoryExperienceRequirement(job) {
-  const text = getJobText(job);
-  if (seniorPattern.test(text)) return true;
+  const title = normalizeText(job.title || "");
+  // Seniority is inferred from the role title only, never from incidental
+  // mentions of "lead" or "director" elsewhere in the description.
+  if (/\b(?:senior|lead|principal|staff|head of|director)\b|руководител/i.test(title)) return true;
 
-  const preferredOnly = /preferred|preferably|nice to have|желательно|желателен|будет плюсом/i.test(text);
-  const explicitYears = /(?:at least|minimum(?: of)?|more than|over)\s*\d+\s*(?:years?|yrs?)|\b\d+\s*\+\s*(?:years?|yrs?)|\b\d+\s*(?:-|–|to)\s*\d+\s*(?:years?|yrs?)\b|\b\d+\s*(?:years?|yrs?)\s+(?:of )?experience|опыт\s+от\s+\d+\s+лет|не менее\s+\d+\s+лет/i.test(text);
-  if (explicitYears && !preferredOnly) return true;
+  const description = [job.description, ...(Array.isArray(job.tags) ? job.tags : [])]
+    .map((value) => String(value || "").replace(/<[^>]*>/g, " "))
+    .join("\n");
+  const sections = description.split(/[.!?;\n]+/).map(cleanText).filter(Boolean);
+  const yearsPattern = /(?:at least|minimum(?: of)?|more than|over)\s*\d+\s*(?:years?|yrs?)|\b\d+\s*\+\s*(?:years?|yrs?)|\b\d+\s*(?:-|–|to)\s*\d+\s*(?:years?|yrs?)\b|\b\d+\s*(?:years?|yrs?)\s+(?:of )?experience|опыт\s+от\s+\d+\s+лет|не менее\s+\d+\s+лет/i;
+  const optionalPattern = /preferred|preferably|nice to have|desired|желательно|желателен|будет плюсом/i;
+  const mandatoryPattern = /(?:must have|required|requirement is|обязателен|обязательно|требуется)\s+(?:at least\s+)?(?:prior\s+)?experience|experience\s+(?:is\s+)?(?:required|mandatory)|опыт работы\s+(?:обязателен|обязательно)|требуется опыт работы/i;
 
-  return /(?:must have|required|requirement is|обязателен|обязательно|требуется)\s+(?:at least\s+)?(?:prior\s+)?experience|experience\s+(?:is\s+)?(?:required|mandatory)|опыт работы\s+(?:обязателен|обязательно)|требуется опыт работы/i.test(text);
+  return sections.some((section) => {
+    const yearMatches = [...section.matchAll(new RegExp(yearsPattern.source, "gi"))];
+    if (yearMatches.length) {
+      return yearMatches.some((match) => {
+        const start = Math.max(0, match.index - 70);
+        const end = Math.min(section.length, match.index + match[0].length + 70);
+        return !optionalPattern.test(section.slice(start, end));
+      });
+    }
+    return mandatoryPattern.test(section) && !optionalPattern.test(section);
+  });
+}
+
+function getExperienceSortRank(job) {
+  const title = normalizeText(job.title || "");
+  const mandatory = hasMandatoryExperienceRequirement(job);
+  if (!mandatory && (entryPattern.test(title) || isEntryLevelJob(job))) return 0;
+  if (mandatory) return 2;
+  return 1;
 }
 
 function cleanText(value) {
@@ -533,11 +557,10 @@ function render() {
       return jobDate(b) - jobDate(a);
     }
 
-    // Experience-focused sorting promotes matching roles without hiding other jobs.
+    // Put entry-level/no-experience roles first, unspecified requirements next,
+    // and jobs with mandatory experience last.
     if (sortMode === "no-experience") {
-      const aNoExperience = /no experience|without experience|no prior experience|0\s*[-–]?\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(a));
-      const bNoExperience = /no experience|without experience|no prior experience|0\s*[-–]?\s*1 years?|без опыта|опыт не требуется/i.test(getJobText(b));
-      const difference = Number(bNoExperience) - Number(aNoExperience);
+      const difference = getExperienceSortRank(a) - getExperienceSortRank(b);
       if (difference) return difference;
     }
     if (sortMode === "entry") {
