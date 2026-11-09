@@ -36,8 +36,10 @@ function renderCompareTray() {
   document.querySelectorAll(".compare-button").forEach((button) => {
     const selected = compareUrls.includes(button.dataset.compareUrl);
     button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
     button.textContent = selected ? "✓ В сравнении" : "⇄ Сравнить";
     button.disabled = !selected && compareUrls.length >= 3;
+    button.title = selected ? "Убрать вакансию из сравнения" : "Добавить вакансию в сравнение";
   });
 }
 
@@ -113,6 +115,8 @@ document.addEventListener("click", (event) => {
     render();
   }
   if (event.target.closest("#close-compare")) $("compare-dialog")?.close();
+  const dialog = $("compare-dialog");
+  if (dialog && event.target === dialog) dialog.close();
 });
 
 let currentJobsLayout = "grid";
