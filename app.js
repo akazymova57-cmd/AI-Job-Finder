@@ -491,7 +491,9 @@ function render() {
   const level = $("level").value;
   const type = $("type").value;
   const salaryOnly = $("salary-only").checked;
-  const noExperienceOnly = $("no-experience-only").checked;\n  const noEnglishRequiredOnly = $("no-english-required-only").checked;\n  const noDegreeRequiredOnly = $("no-degree-required-only").checked;
+  const noExperienceOnly = $("no-experience-only").checked;
+  const noEnglishRequiredOnly = $("no-english-required-only").checked;
+  const noDegreeRequiredOnly = $("no-degree-required-only").checked;
 
   const filtered = state.jobs.filter((job) => {
     if (!isRecentJob(job) || !passesSafetyChecks(job)) return false;
@@ -501,7 +503,9 @@ function render() {
     if (level === "entry" && !entryPattern.test(text)) return false;
     if (level === "intern" && !internPattern.test(text)) return false;
     if (level === "experienced" && !seniorPattern.test(text)) return false;
-    if (noExperienceOnly && hasMandatoryExperienceRequirement(job)) return false;\n    if (noEnglishRequiredOnly && hasExplicitEnglishRequirement(job)) return false;\n    if (noDegreeRequiredOnly && !hasExplicitNoDegreeRequirement(job)) return false;
+    if (noExperienceOnly && hasMandatoryExperienceRequirement(job)) return false;
+    if (noEnglishRequiredOnly && hasExplicitEnglishRequirement(job)) return false;
+    if (noDegreeRequiredOnly && !hasExplicitNoDegreeRequirement(job)) return false;
     if (type !== "all" && job.job_type !== type) return false;
     if (salaryOnly && !job.salary) return false;
     if (state.quickCategory && !categoryMatches(job, state.quickCategory)) return false;
