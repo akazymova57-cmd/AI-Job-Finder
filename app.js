@@ -22,6 +22,99 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
+let compareUrls = [];
+
+function renderCompareTray() {
+  const tray = $("compare-tray");
+  const count = $("compare-count");
+  const open = $("open-compare");
+  if (!tray || !count || !open) return;
+  count.textContent = String(compareUrls.length);
+  tray.hidden = compareUrls.length === 0;
+  open.disabled = compareUrls.length < 2;
+  open.textContent = compareUrls.length < 2 ? "Выбери ещё " + (2 - compareUrls.length) : "Сравнить вакансии";
+  document.querySelectorAll(".compare-button").forEach((button) => {
+    const selected = compareUrls.includes(button.dataset.compareUrl);
+    button.classList.toggle("is-selected", selected);
+    button.textContent = selected ? "✓ В сравнении" : "⇄ Сравнить";
+    button.disabled = !selected && compareUrls.length >= 3;
+  });
+}
+
+function openCompareDialog() {
+  const dialog = $("compare-dialog");
+  const table = $("compare-table");
+  if (!dialog || !table || compareUrls.length < 2) return;
+  const selected = compareUrls.map((url) => state.jobs.find((job) => safeJobUrl(job.url, job.source_id) === url)).filter(Boolean);
+  if (selected.length < 2) return;
+  table.replaceChildren();
+  const fields = [
+    ["Компания", (job) => job.company_name || "Не указана"],
+    ["География", (job) => job.candidate_required_location || "Не указана"],
+    ["Зарплата", (job) => job.salary || "Не указана"],
+    ["Занятость", (job) => job.job_type || "Не указана"],
+    ["Опыт", getExperienceRequirement],
+    ["Английский", getEnglishRequirement],
+    ["Сложность", (job) => getJobDifficulty(job).label],
+    ["Опубликована", getFreshnessLabel]
+  ];
+  const head = document.createElement("tr");
+  const first = document.createElement("th");
+  first.textContent = "Параметр";
+  head.append(first);
+  selected.forEach((job) => {
+    const cell = document.createElement("th");
+    cell.textContent = cleanText(job.title || "Вакансия").slice(0, 90);
+    head.append(cell);
+  });
+  table.append(head);
+  fields.forEach(([label, getter]) => {
+    const row = document.createElement("tr");
+    const heading = document.createElement("th");
+    heading.textContent = label;
+    row.append(heading);
+    selected.forEach((job) => {
+      const cell = document.createElement("td");
+      cell.textContent = getter(job);
+      row.append(cell);
+    });
+    table.append(row);
+  });
+  const linksRow = document.createElement("tr");
+  const linksHeading = document.createElement("th");
+  linksHeading.textContent = "Источник";
+  linksRow.append(linksHeading);
+  selected.forEach((job) => {
+    const cell = document.createElement("td");
+    const link = document.createElement("a");
+    link.href = safeJobUrl(job.url, job.source_id);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Открыть ↗";
+    cell.append(link);
+    linksRow.append(cell);
+  });
+  table.append(linksRow);
+  if (typeof dialog.showModal === "function") dialog.showModal();
+}
+
+document.addEventListener("click", (event) => {
+  const compareButton = event.target.closest(".compare-button");
+  if (compareButton) {
+    const url = compareButton.dataset.compareUrl;
+    if (compareUrls.includes(url)) compareUrls = compareUrls.filter((item) => item !== url);
+    else if (compareUrls.length < 3) compareUrls.push(url);
+    render();
+    return;
+  }
+  if (event.target.closest("#open-compare")) openCompareDialog();
+  if (event.target.closest("#clear-compare")) {
+    compareUrls = [];
+    render();
+  }
+  if (event.target.closest("#close-compare")) $("compare-dialog")?.close();
+});
+
 let currentJobsLayout = "grid";
 try {
   currentJobsLayout = localStorage.getItem("aijf_jobs_layout") === "list" ? "list" : "grid";
@@ -1239,7 +1332,11 @@ function render() {
       report.href = "https://github.com/akazymova57-cmd/AI-Job-Finder/issues/new?title=" + encodeURIComponent("Жалоба на вакансию: " + (job.title || "Без названия")) + "&body=" + encodeURIComponent("Ссылка: " + safeJobUrl(job.url, job.source_id) + "\nКомпания: " + (job.company_name || "не указана") + "\nОпишите проблему:");
       report.target = "_blank";
       report.rel = "noopener noreferrer";
-      bottom.append(relevance, link, copyLink, favorite, report);
+      const compare = document.createElement("button");
+      compare.type = "button";
+      compare.className = "compare-button";
+      compare.dataset.compareUrl = safeJobUrl(job.url, job.source_id);
+      bottom.append(relevance, link, copyLink, favorite, compare, report);
       card.append(bottom);
       container.append(card);
     });
@@ -1265,6 +1362,7 @@ function render() {
     button.classList.toggle("is-saved", saved);
   });
   renderTracker();
+  renderCompareTray();
   setJobsLayout(currentJobsLayout);
   applyLanguage();
 }
