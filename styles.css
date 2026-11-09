@@ -381,3 +381,15 @@ footer a{color:#236d58}
   .command-footer{font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){.command-trigger,.view-button,.command-dialog{transition:none!important}}
+
+/* Progressive disclosure: keep job cards scannable until the reader asks for detail. */
+.job-details{border:1px solid #edf0f5;border-radius:11px;background:#fbfcff;overflow:hidden}
+.job-details>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px;padding:11px 13px;color:#52627a;font-size:10px;font-weight:700;cursor:pointer;list-style:none}
+.job-details>summary::-webkit-details-marker{display:none}
+.job-details>summary:after{content:"+";display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border:1px solid var(--line);border-radius:50%;color:var(--blue);font-size:14px;line-height:1}
+.job-details[open]>summary{border-bottom:1px solid #edf0f5;color:var(--blue)}
+.job-details[open]>summary:after{content:"−"}
+.job-details>.job-insights,.job-details>.salary-highlight,.job-details>.translate-button,.job-details>.translation-output,.job-details>.match-details{margin:11px 12px}
+.job-details>.job-insights{margin-top:12px}
+.job-details>.match-details:last-child{margin-bottom:13px}
+@media(prefers-reduced-motion:no-preference){.job-details>summary:after{transition:transform .18s ease}.job-details[open]>summary:after{transform:rotate(180deg)}}
