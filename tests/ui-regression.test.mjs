@@ -50,3 +50,26 @@ test("mobile drawer is hidden from tab order and has keyboard focus management",
   assert.ok(app.includes("function hasExplicitEnglishRequirement(job)"));
   assert.ok(app.includes("function hasExplicitNoDegreeRequirement(job)"));
 });
+
+const requirementHelperStart = app.indexOf("function hasExplicitEnglishRequirement(job)");
+const requirementHelperEnd = app.indexOf("function getExperienceRequirement(job)", requirementHelperStart);
+const requirementHelpers = new Function(
+  "getJobText",
+  app.slice(requirementHelperStart, requirementHelperEnd) +
+    "; return { hasExplicitEnglishRequirement, hasExplicitNoDegreeRequirement };"
+);
+
+test("English filter distinguishes mandatory requirements from preferences", () => {
+  const { hasExplicitEnglishRequirement } = requirementHelpers((job) => job.description || "");
+  assert.equal(hasExplicitEnglishRequirement({ description: "English B2 required" }), true);
+  assert.equal(hasExplicitEnglishRequirement({ description: "Fluent in English is mandatory" }), true);
+  assert.equal(hasExplicitEnglishRequirement({ description: "English B2 preferred" }), false);
+  assert.equal(hasExplicitEnglishRequirement({ description: "English is a plus" }), false);
+});
+
+test("degree filter only accepts explicit no-degree statements", () => {
+  const { hasExplicitNoDegreeRequirement } = requirementHelpers((job) => job.description || "");
+  assert.equal(hasExplicitNoDegreeRequirement({ description: "Degree or equivalent experience" }), true);
+  assert.equal(hasExplicitNoDegreeRequirement({ description: "Bachelor degree required" }), false);
+  assert.equal(hasExplicitNoDegreeRequirement({ description: "No degree required" }), true);
+});
